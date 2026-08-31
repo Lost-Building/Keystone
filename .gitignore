@@ -1,0 +1,12 @@
+node_modules/
+client/node_modules/
+backend/node_modules/
+client/dist/
+backend/.env
+backend/keystone.sqlite
+backend/keystone.sqlite-shm
+backend/keystone.sqlite-wal
+.DS_Store
+Thumbs.db
+.agents/
+skills-lock.json

@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import './App.css';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+
 interface Game {
   id: string;
   title: string;
@@ -52,7 +54,7 @@ function App() {
     headers.set('Content-Type', 'application/json');
     if (token) headers.set('Authorization', `Bearer ${token}`);
 
-    const response = await fetch(`http://localhost:3001${path}`, {
+    const response = await fetch(`${API_BASE_URL}${path}`, {
       ...options,
       headers
     });
@@ -198,7 +200,7 @@ function App() {
         };
 
     try {
-      const response = await fetch(`http://localhost:3001/api/auth/${authMode}`, {
+      const response = await fetch(`${API_BASE_URL}/api/auth/${authMode}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)

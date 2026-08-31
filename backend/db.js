@@ -1,82 +1,139 @@
-const path = require('path');
-const Database = require('better-sqlite3');
+const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 
-const dbPath = process.env.DATABASE_PATH || path.join(__dirname, 'keystone.sqlite');
-const db = new Database(dbPath);
+const connectionString = process.env.DATABASE_URL;
 
-db.pragma('journal_mode = WAL');
-db.pragma('foreign_keys = ON');
+if (!connectionString) {
+  throw new Error('DATABASE_URL is required. Run `neon env pull` or define it in your backend environment.');
+}
 
-db.exec(`
-  CREATE TABLE IF NOT EXISTS users (
-    id TEXT PRIMARY KEY,
-    username TEXT NOT NULL UNIQUE,
-    email TEXT NOT NULL UNIQUE,
-    password_hash TEXT NOT NULL,
-    role TEXT NOT NULL DEFAULT 'user',
-    email_verified INTEGER NOT NULL DEFAULT 0,
-    mfa_enabled INTEGER NOT NULL DEFAULT 0,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  );
+const pool = new Pool({
+  connectionString,
+  ssl: connectionString.includes('sslmode=require') ? { rejectUnauthorized: false } : undefined
+});
 
-  CREATE TABLE IF NOT EXISTS games (
-    id TEXT PRIMARY KEY,
-    title TEXT NOT NULL,
-    developer TEXT NOT NULL,
-    price_cents INTEGER NOT NULL CHECK (price_cents >= 0),
-    image TEXT,
-    genre TEXT,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  );
+function toPostgresParams(sql) {
+  let index = 0;
+  return sql.replace(/\?/g, () => `$${++index}`);
+}
 
-  CREATE TABLE IF NOT EXISTS ownership (
-    key_id TEXT PRIMARY KEY,
-    game_id TEXT NOT NULL REFERENCES games(id),
-    owner_id TEXT NOT NULL REFERENCES users(id),
-    is_listed_for_sale INTEGER NOT NULL DEFAULT 0,
-    sale_price_cents INTEGER CHECK (sale_price_cents IS NULL OR sale_price_cents > 0),
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  );
+function buildDb(client = pool) {
+  return {
+    prepare(sql) {
+      const text = toPostgresParams(sql);
+      return {
+        async get(...params) {
+          const result = await client.query(text, params);
+          return result.rows[0];
+        },
+        async all(...params) {
+          const result = await client.query(text, params);
+          return result.rows;
+        },
+        async run(...params) {
+          const result = await client.query(text, params);
+          return { changes: result.rowCount };
+        }
+      };
+    },
+    async exec(sql) {
+      await client.query(sql);
+    }
+  };
+}
 
-  CREATE TABLE IF NOT EXISTS payment_methods (
-    id TEXT PRIMARY KEY,
-    user_id TEXT NOT NULL REFERENCES users(id),
-    provider TEXT NOT NULL,
-    provider_customer_id TEXT NOT NULL,
-    provider_payment_method_id TEXT NOT NULL,
-    brand TEXT,
-    last4 TEXT,
-    expires_month INTEGER,
-    expires_year INTEGER,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(provider, provider_payment_method_id)
-  );
+const db = buildDb();
 
-  CREATE TABLE IF NOT EXISTS checkout_orders (
-    id TEXT PRIMARY KEY,
-    stripe_session_id TEXT UNIQUE,
-    buyer_id TEXT NOT NULL REFERENCES users(id),
-    key_id TEXT NOT NULL REFERENCES ownership(key_id),
-    seller_id TEXT NOT NULL REFERENCES users(id),
-    amount_cents INTEGER NOT NULL CHECK (amount_cents > 0),
-    currency TEXT NOT NULL DEFAULT 'usd',
-    status TEXT NOT NULL DEFAULT 'pending',
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    fulfilled_at TEXT
-  );
+async function transaction(callback) {
+  const client = await pool.connect();
+  const txDb = buildDb(client);
 
-  CREATE TABLE IF NOT EXISTS audit_log (
-    id TEXT PRIMARY KEY,
-    user_id TEXT REFERENCES users(id),
-    action TEXT NOT NULL,
-    ip TEXT,
-    user_agent TEXT,
-    metadata TEXT,
-    created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-  );
-`);
+  try {
+    await client.query('BEGIN');
+    const result = await callback(txDb);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+async function initDb() {
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY,
+      username TEXT NOT NULL UNIQUE,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      role TEXT NOT NULL DEFAULT 'user',
+      email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+      mfa_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS games (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      developer TEXT NOT NULL,
+      price_cents INTEGER NOT NULL CHECK (price_cents >= 0),
+      image TEXT,
+      genre TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS ownership (
+      key_id TEXT PRIMARY KEY,
+      game_id TEXT NOT NULL REFERENCES games(id),
+      owner_id TEXT NOT NULL REFERENCES users(id),
+      is_listed_for_sale BOOLEAN NOT NULL DEFAULT FALSE,
+      sale_price_cents INTEGER CHECK (sale_price_cents IS NULL OR sale_price_cents > 0),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS payment_methods (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id),
+      provider TEXT NOT NULL,
+      provider_customer_id TEXT NOT NULL,
+      provider_payment_method_id TEXT NOT NULL,
+      brand TEXT,
+      last4 TEXT,
+      expires_month INTEGER,
+      expires_year INTEGER,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      UNIQUE(provider, provider_payment_method_id)
+    );
+
+    CREATE TABLE IF NOT EXISTS checkout_orders (
+      id TEXT PRIMARY KEY,
+      stripe_session_id TEXT UNIQUE,
+      buyer_id TEXT NOT NULL REFERENCES users(id),
+      key_id TEXT NOT NULL REFERENCES ownership(key_id),
+      seller_id TEXT NOT NULL REFERENCES users(id),
+      amount_cents INTEGER NOT NULL CHECK (amount_cents > 0),
+      currency TEXT NOT NULL DEFAULT 'usd',
+      status TEXT NOT NULL DEFAULT 'pending',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      fulfilled_at TIMESTAMPTZ
+    );
+
+    CREATE TABLE IF NOT EXISTS audit_log (
+      id TEXT PRIMARY KEY,
+      user_id TEXT REFERENCES users(id),
+      action TEXT NOT NULL,
+      ip TEXT,
+      user_agent TEXT,
+      metadata JSONB,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+
+  await seed();
+}
 
 function centsToGame(row) {
   return {
@@ -89,16 +146,16 @@ function centsToGame(row) {
   };
 }
 
-function seed() {
-  const userCount = db.prepare('SELECT COUNT(*) AS count FROM users').get().count;
+async function seed() {
+  const userCount = Number((await db.prepare('SELECT COUNT(*) AS count FROM users').get()).count);
   if (userCount === 0) {
-    db.prepare(`
+    await db.prepare(`
       INSERT INTO users (id, username, email, password_hash, role, email_verified, mfa_enabled)
-      VALUES (?, ?, ?, ?, ?, 1, 1)
+      VALUES (?, ?, ?, ?, ?, TRUE, TRUE)
     `).run('user1', 'Gamer123', 'gamer@example.com', bcrypt.hashSync('ChangeMe123!', 12), 'developer');
   }
 
-  const gameCount = db.prepare('SELECT COUNT(*) AS count FROM games').get().count;
+  const gameCount = Number((await db.prepare('SELECT COUNT(*) AS count FROM games').get()).count);
   if (gameCount > 0) return;
 
   const games = [
@@ -112,32 +169,31 @@ function seed() {
     ['game8', 'Dungeon Crawler', 'DevStudio', 999, null, 'RPG']
   ];
 
-  const insertGame = db.prepare('INSERT INTO games (id, title, developer, price_cents, image, genre) VALUES (?, ?, ?, ?, ?, ?)');
-  const insertOwner = db.prepare('INSERT INTO ownership (key_id, game_id, owner_id, is_listed_for_sale, sale_price_cents) VALUES (?, ?, ?, ?, ?)');
-  const insertUser = db.prepare('INSERT OR IGNORE INTO users (id, username, email, password_hash) VALUES (?, ?, ?, ?)');
   const defaultHash = bcrypt.hashSync(uuidv4(), 12);
 
-  const seedTx = db.transaction(() => {
-    for (const game of games) insertGame.run(...game);
-    insertOwner.run('key-123', 'game1', 'user1', 0, null);
-    insertOwner.run('key-456', 'game2', 'user1', 0, null);
+  await transaction(async (tx) => {
+    const insertGame = tx.prepare('INSERT INTO games (id, title, developer, price_cents, image, genre) VALUES (?, ?, ?, ?, ?, ?)');
+    const insertOwner = tx.prepare('INSERT INTO ownership (key_id, game_id, owner_id, is_listed_for_sale, sale_price_cents) VALUES (?, ?, ?, ?, ?)');
+    const insertUser = tx.prepare('INSERT INTO users (id, username, email, password_hash) VALUES (?, ?, ?, ?) ON CONFLICT DO NOTHING');
+
+    for (const game of games) await insertGame.run(...game);
+    await insertOwner.run('key-123', 'game1', 'user1', false, null);
+    await insertOwner.run('key-456', 'game2', 'user1', false, null);
 
     for (let i = 0; i < 20; i += 1) {
       const randomUser = `randomUser${i}`;
       const randomGame = games[Math.floor(Math.random() * games.length)][0];
       const priceCents = Math.round((Math.random() * 30 + 1) * 100);
-      insertUser.run(randomUser, randomUser, `${randomUser}@example.com`, defaultHash);
-      insertOwner.run(`test-key-${i}`, randomGame, randomUser, 1, priceCents);
+      await insertUser.run(randomUser, randomUser, `${randomUser}@example.com`, defaultHash);
+      await insertOwner.run(`test-key-${i}`, randomGame, randomUser, true, priceCents);
     }
   });
-
-  seedTx();
 }
-
-seed();
 
 module.exports = {
   db,
+  transaction,
+  initDb,
   centsToGame,
   uuidv4
 };

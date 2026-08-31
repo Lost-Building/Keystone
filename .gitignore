@@ -10,3 +10,5 @@ backend/keystone.sqlite-wal
 Thumbs.db
 .agents/
 skills-lock.json
+.neon
+.env.local

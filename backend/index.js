@@ -1,4 +1,7 @@
-require('dotenv').config();
+const path = require('path');
+
+require('dotenv').config({ path: path.join(__dirname, '..', '.env.local') });
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const express = require('express');
 const cors = require('cors');
@@ -9,7 +12,7 @@ const morgan = require('morgan');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const Stripe = require('stripe');
-const { db, centsToGame, uuidv4 } = require('./db');
+const { db, transaction, initDb, centsToGame, uuidv4 } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -41,7 +44,7 @@ app.use(cors({
   }
 }));
 
-app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req, res) => {
+app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), async (req, res, next) => {
   if (!stripe || !STRIPE_WEBHOOK_SECRET) {
     return res.status(503).send('Stripe webhook is not configured');
   }
@@ -57,13 +60,13 @@ app.post('/api/stripe/webhook', express.raw({ type: 'application/json' }), (req,
   if (event.type === 'checkout.session.completed' || event.type === 'checkout.session.async_payment_succeeded') {
     const session = event.data.object;
     if (session.payment_status !== 'unpaid') {
-      fulfillCheckoutSession(session.id, session.payment_intent);
+      await fulfillCheckoutSession(session.id, session.payment_intent);
     }
   }
 
   if (event.type === 'checkout.session.async_payment_failed') {
     const session = event.data.object;
-    db.prepare('UPDATE checkout_orders SET status = ? WHERE stripe_session_id = ? AND status = ?').run('failed', session.id, 'pending');
+    await db.prepare('UPDATE checkout_orders SET status = ? WHERE stripe_session_id = ? AND status = ?').run('failed', session.id, 'pending');
   }
 
   res.json({ received: true });
@@ -87,8 +90,8 @@ function cleanText(value, maxLength) {
   return cleaned;
 }
 
-function audit(req, action, metadata = {}) {
-  db.prepare(`
+async function audit(req, action, metadata = {}) {
+  await db.prepare(`
     INSERT INTO audit_log (id, user_id, action, ip, user_agent, metadata)
     VALUES (?, ?, ?, ?, ?, ?)
   `).run(uuidv4(), req.user?.id || null, action, req.ip, req.get('user-agent') || null, JSON.stringify(metadata));
@@ -113,13 +116,13 @@ function signToken(user) {
   return jwt.sign({ sub: user.id, role: user.role }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
 }
 
-function requireAuth(req, res, next) {
+async function requireAuth(req, res, next) {
   const authHeader = req.get('authorization') || '';
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
 
   try {
     const claims = jwt.verify(token, JWT_SECRET);
-    const user = db.prepare('SELECT * FROM users WHERE id = ?').get(claims.sub);
+    const user = await db.prepare('SELECT * FROM users WHERE id = ?').get(claims.sub);
     if (!user) return res.status(401).json({ error: 'Authentication required' });
     req.user = user;
     return next();
@@ -129,9 +132,9 @@ function requireAuth(req, res, next) {
 }
 
 function requireRole(role) {
-  return (req, res, next) => {
+  return async (req, res, next) => {
     if (req.user?.role !== role && req.user?.role !== 'admin') {
-      audit(req, 'authorization_denied', { requiredRole: role });
+      await audit(req, 'authorization_denied', { requiredRole: role });
       return res.status(403).json({ error: 'Insufficient permissions' });
     }
 
@@ -139,30 +142,30 @@ function requireRole(role) {
   };
 }
 
-function fulfillCheckoutSession(sessionId, paymentIntentId) {
-  const fulfill = db.transaction(() => {
-    const order = db.prepare('SELECT * FROM checkout_orders WHERE stripe_session_id = ?').get(sessionId);
+async function fulfillCheckoutSession(sessionId, paymentIntentId) {
+  await transaction(async (tx) => {
+    const order = await tx.prepare('SELECT * FROM checkout_orders WHERE stripe_session_id = ?').get(sessionId);
     if (!order || order.status === 'fulfilled') return;
 
-    const key = db.prepare('SELECT * FROM ownership WHERE key_id = ? AND is_listed_for_sale = 1').get(order.key_id);
+    const key = await tx.prepare('SELECT * FROM ownership WHERE key_id = ? AND is_listed_for_sale = TRUE').get(order.key_id);
     if (!key || key.owner_id !== order.seller_id) {
-      db.prepare('UPDATE checkout_orders SET status = ? WHERE stripe_session_id = ?').run('needs_review', sessionId);
+      await tx.prepare('UPDATE checkout_orders SET status = ? WHERE stripe_session_id = ?').run('needs_review', sessionId);
       return;
     }
 
-    db.prepare(`
+    await tx.prepare(`
       UPDATE ownership
-      SET owner_id = ?, is_listed_for_sale = 0, sale_price_cents = NULL
+      SET owner_id = ?, is_listed_for_sale = FALSE, sale_price_cents = NULL
       WHERE key_id = ?
     `).run(order.buyer_id, order.key_id);
 
-    db.prepare(`
+    await tx.prepare(`
       UPDATE checkout_orders
       SET status = ?, fulfilled_at = CURRENT_TIMESTAMP
       WHERE stripe_session_id = ?
     `).run('fulfilled', sessionId);
 
-    db.prepare(`
+    await tx.prepare(`
       INSERT INTO audit_log (id, user_id, action, metadata)
       VALUES (?, ?, ?, ?)
     `).run(uuidv4(), order.buyer_id, 'stripe_checkout_fulfilled', JSON.stringify({
@@ -171,8 +174,6 @@ function fulfillCheckoutSession(sessionId, paymentIntentId) {
       paymentIntentId
     }));
   });
-
-  fulfill();
 }
 
 app.get('/api/health', (req, res) => {
@@ -188,30 +189,30 @@ app.post('/api/auth/register', async (req, res) => {
     return res.status(400).json({ error: 'Username, valid email, and a 12+ character password are required' });
   }
 
-  const existing = db.prepare('SELECT id FROM users WHERE username = ? OR email = ?').get(username, email);
+  const existing = await db.prepare('SELECT id FROM users WHERE username = ? OR email = ?').get(username, email);
   if (existing) return res.status(409).json({ error: 'Username or email is already registered' });
 
   const userId = uuidv4();
   const passwordHash = await bcrypt.hash(password, 12);
-  db.prepare('INSERT INTO users (id, username, email, password_hash) VALUES (?, ?, ?, ?)').run(userId, username, email, passwordHash);
+  await db.prepare('INSERT INTO users (id, username, email, password_hash) VALUES (?, ?, ?, ?)').run(userId, username, email, passwordHash);
 
-  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
+  const user = await db.prepare('SELECT * FROM users WHERE id = ?').get(userId);
   req.user = user;
-  audit(req, 'user_registered');
+  await audit(req, 'user_registered');
   res.status(201).json({ token: signToken(user), user: publicUser(user) });
 });
 
 app.post('/api/auth/login', async (req, res) => {
   const email = cleanText(req.body.email, 254)?.toLowerCase();
   const password = typeof req.body.password === 'string' ? req.body.password : '';
-  const user = email ? db.prepare('SELECT * FROM users WHERE email = ?').get(email) : null;
+  const user = email ? await db.prepare('SELECT * FROM users WHERE email = ?').get(email) : null;
 
   if (!user || !(await bcrypt.compare(password, user.password_hash))) {
     return res.status(401).json({ error: 'Invalid email or password' });
   }
 
   req.user = user;
-  audit(req, 'user_logged_in');
+  await audit(req, 'user_logged_in');
   res.json({ token: signToken(user), user: publicUser(user) });
 });
 
@@ -219,8 +220,8 @@ app.get('/api/auth/me', requireAuth, (req, res) => {
   res.json({ user: publicUser(req.user) });
 });
 
-app.get('/api/library/me', requireAuth, (req, res) => {
-  const rows = db.prepare(`
+app.get('/api/library/me', requireAuth, async (req, res) => {
+  const rows = await db.prepare(`
     SELECT ownership.key_id, ownership.is_listed_for_sale, ownership.sale_price_cents,
       games.id, games.title, games.developer, games.price_cents, games.image, games.genre
     FROM ownership
@@ -237,13 +238,13 @@ app.get('/api/library/me', requireAuth, (req, res) => {
   })));
 });
 
-app.get('/api/marketplace', requireAuth, (req, res) => {
-  const rows = db.prepare(`
+app.get('/api/marketplace', requireAuth, async (req, res) => {
+  const rows = await db.prepare(`
     SELECT ownership.key_id, ownership.owner_id, ownership.sale_price_cents,
       games.id, games.title, games.developer, games.price_cents, games.image, games.genre
     FROM ownership
     JOIN games ON games.id = ownership.game_id
-    WHERE ownership.is_listed_for_sale = 1
+    WHERE ownership.is_listed_for_sale = TRUE
     ORDER BY ownership.created_at DESC
   `).all();
 
@@ -255,7 +256,7 @@ app.get('/api/marketplace', requireAuth, (req, res) => {
   })));
 });
 
-app.post('/api/marketplace/sell', requireAuth, (req, res) => {
+app.post('/api/marketplace/sell', requireAuth, async (req, res) => {
   const keyId = cleanText(req.body.keyId, 80);
   const salePriceCents = parseMoney(req.body.price);
 
@@ -263,15 +264,15 @@ app.post('/api/marketplace/sell', requireAuth, (req, res) => {
     return res.status(400).json({ error: 'Invalid listing request' });
   }
 
-  const result = db.prepare(`
+  const result = await db.prepare(`
     UPDATE ownership
-    SET is_listed_for_sale = 1, sale_price_cents = ?
+    SET is_listed_for_sale = TRUE, sale_price_cents = ?
     WHERE key_id = ? AND owner_id = ?
   `).run(salePriceCents, keyId, req.user.id);
 
   if (result.changes === 0) return res.status(404).json({ error: 'Key not found or not owned by user' });
 
-  audit(req, 'marketplace_listed', { keyId, salePriceCents });
+  await audit(req, 'marketplace_listed', { keyId, salePriceCents });
   res.json({ success: true, message: 'Game listed on marketplace successfully' });
 });
 
@@ -287,12 +288,12 @@ app.post('/api/checkout/marketplace', requireAuth, async (req, res) => {
   const keyId = cleanText(req.body.keyId, 80);
   if (!keyId) return res.status(400).json({ error: 'Invalid checkout request' });
 
-  const listing = db.prepare(`
+  const listing = await db.prepare(`
     SELECT ownership.key_id, ownership.owner_id, ownership.sale_price_cents,
       games.title, games.developer
     FROM ownership
     JOIN games ON games.id = ownership.game_id
-    WHERE ownership.key_id = ? AND ownership.is_listed_for_sale = 1
+    WHERE ownership.key_id = ? AND ownership.is_listed_for_sale = TRUE
   `).get(keyId);
 
   if (!listing) return res.status(404).json({ error: 'Key not available for sale' });
@@ -324,16 +325,16 @@ app.post('/api/checkout/marketplace', requireAuth, async (req, res) => {
     integration_identifier: 'keystone_checkout_abcdwxyz'
   });
 
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO checkout_orders (id, stripe_session_id, buyer_id, key_id, seller_id, amount_cents)
     VALUES (?, ?, ?, ?, ?, ?)
   `).run(orderId, session.id, req.user.id, listing.key_id, listing.owner_id, listing.sale_price_cents);
 
-  audit(req, 'stripe_checkout_created', { orderId, keyId: listing.key_id, stripeSessionId: session.id });
+  await audit(req, 'stripe_checkout_created', { orderId, keyId: listing.key_id, stripeSessionId: session.id });
   res.status(201).json({ url: session.url });
 });
 
-app.post('/api/developer/upload', requireAuth, requireRole('developer'), (req, res) => {
+app.post('/api/developer/upload', requireAuth, requireRole('developer'), async (req, res) => {
   const title = cleanText(req.body.title, 120);
   const developer = cleanText(req.body.developer, 80);
   const genre = req.body.genre ? cleanText(req.body.genre, 40) : null;
@@ -344,14 +345,14 @@ app.post('/api/developer/upload', requireAuth, requireRole('developer'), (req, r
   }
 
   const gameId = uuidv4();
-  db.prepare('INSERT INTO games (id, title, developer, price_cents, genre) VALUES (?, ?, ?, ?, ?)').run(gameId, title, developer, priceCents, genre);
-  const game = db.prepare('SELECT * FROM games WHERE id = ?').get(gameId);
+  await db.prepare('INSERT INTO games (id, title, developer, price_cents, genre) VALUES (?, ?, ?, ?, ?)').run(gameId, title, developer, priceCents, genre);
+  const game = await db.prepare('SELECT * FROM games WHERE id = ?').get(gameId);
 
-  audit(req, 'developer_game_uploaded', { gameId });
+  await audit(req, 'developer_game_uploaded', { gameId });
   res.status(201).json({ success: true, message: 'Game added to catalog successfully', game: centsToGame(game) });
 });
 
-app.post('/api/payments/methods', requireAuth, (req, res) => {
+app.post('/api/payments/methods', requireAuth, async (req, res) => {
   const provider = cleanText(req.body.provider, 40);
   const providerCustomerId = cleanText(req.body.providerCustomerId, 120);
   const providerPaymentMethodId = cleanText(req.body.providerPaymentMethodId, 120);
@@ -362,7 +363,7 @@ app.post('/api/payments/methods', requireAuth, (req, res) => {
     return res.status(400).json({ error: 'Use a payment provider token. Raw card data is not accepted.' });
   }
 
-  db.prepare(`
+  await db.prepare(`
     INSERT INTO payment_methods (id, user_id, provider, provider_customer_id, provider_payment_method_id, brand, last4, expires_month, expires_year)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(
@@ -377,7 +378,7 @@ app.post('/api/payments/methods', requireAuth, (req, res) => {
     Number.isInteger(req.body.expiresYear) ? req.body.expiresYear : null
   );
 
-  audit(req, 'payment_method_added', { provider, brand, last4 });
+  await audit(req, 'payment_method_added', { provider, brand, last4 });
   res.status(201).json({ success: true });
 });
 
@@ -386,6 +387,13 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Backend server running on http://localhost:${PORT}`);
-});
+initDb()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Backend server running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((error) => {
+    console.error('Failed to initialize database', error);
+    process.exit(1);
+  });

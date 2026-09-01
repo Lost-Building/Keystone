@@ -101,8 +101,8 @@ function App() {
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [marketplace, setMarketplace] = useState<MarketplaceListing[]>([]);
   
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | 'newest'>('newest');
+  const [searchQuery] = useState('');
+  const [sortOrder] = useState<'asc' | 'desc' | 'newest'>('newest');
 
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, item: LibraryItem | null } | null>(null);
   const [sellModal, setSellModal] = useState<LibraryItem | null>(null);
@@ -381,7 +381,7 @@ function App() {
             </div>
           </header>
 
-          <main className="dashboard-grid public-dashboard-grid">
+          <main className="dashboard-grid public-dashboard-grid horizontal-dashboard">
             <section className="dashboard-panel spotlight-panel">
               <span className="tile-label">Featured</span>
               <h2>Build your library. Build your player.</h2>
@@ -519,8 +519,8 @@ function App() {
                 </div>
               </header>
 
-              <section className="dashboard-grid">
-                <button type="button" className="dashboard-panel spotlight-panel" onClick={() => document.getElementById('store-games')?.scrollIntoView({ behavior: 'smooth' })}>
+              <section className="dashboard-grid horizontal-dashboard">
+                <button type="button" className="dashboard-panel spotlight-panel" onClick={() => alert('Store home selected.')}>
                   <span className="tile-label">Spotlight</span>
                   <h2>Games, avatar gear, and player-owned keys</h2>
                   <p>A console dashboard built around buying, collecting, trading, and showing off who you are.</p>
@@ -558,62 +558,28 @@ function App() {
                     </button>
                   ))}
                 </section>
-              </section>
-            </div>
-            
-            <div className="marketplace-controls" id="store-games" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-              <input 
-                type="text" 
-                placeholder="Search games..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{ flex: 1, padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid rgba(102, 252, 241, 0.3)', background: 'rgba(31, 40, 51, 0.5)', color: 'white', outline: 'none' }}
-              />
-              <select 
-                value={sortOrder}
-                onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc' | 'newest')}
-                style={{ padding: '0.8rem 1rem', borderRadius: '8px', border: '1px solid rgba(102, 252, 241, 0.3)', background: 'rgba(31, 40, 51, 0.5)', color: 'white', outline: 'none' }}
-              >
-                <option value="newest">Newest Listings</option>
-                <option value="asc">Price: Low to High</option>
-                <option value="desc">Price: High to Low</option>
-              </select>
-            </div>
 
-            <div className="games-grid">
-              {marketplace
-                .filter(listing => listing.game.title.toLowerCase().includes(searchQuery.toLowerCase()))
-                .sort((a, b) => {
-                  if (sortOrder === 'asc') return a.salePrice - b.salePrice;
-                  if (sortOrder === 'desc') return b.salePrice - a.salePrice;
-                  return 0; // newest is default order from backend mock
-                })
-                .map((listing) => (
-                <div key={listing.keyId} className="game-card marketplace-card">
-                  <div className="game-image-container">
-                    {listing.game.image ? (
-                      <img src={listing.game.image} alt={listing.game.title} className="game-thumbnail" />
-                    ) : (
-                      <div className="image-placeholder">No Image</div>
-                    )}
-                  </div>
-                  <div className="game-info">
-                    <div className="game-title">{listing.game.title}</div>
-                    <div className="game-dev" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span>{listing.game.developer}</span>
-                      {listing.game.genre && <span style={{ background: 'rgba(102, 252, 241, 0.2)', color: '#66fcf1', padding: '2px 6px', borderRadius: '4px', fontSize: '0.75rem' }}>{listing.game.genre}</span>}
-                    </div>
-                    <div className="marketplace-actions">
-                      <span className="price">${listing.salePrice.toFixed(2)}</span>
-                      {listing.sellerId === currentUser.id ? (
-                        <button className="btn-secondary" disabled>Your Listing</button>
+                {marketplace
+                  .filter(listing => listing.game.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                  .sort((a, b) => {
+                    if (sortOrder === 'asc') return a.salePrice - b.salePrice;
+                    if (sortOrder === 'desc') return b.salePrice - a.salePrice;
+                    return 0;
+                  })
+                  .map((listing) => (
+                    <button type="button" key={listing.keyId} className="dashboard-panel store-game-tile" onClick={() => handleBuy(listing)}>
+                      {listing.game.image ? (
+                        <img src={listing.game.image} alt={listing.game.title} />
                       ) : (
-                        <button className="btn-primary" onClick={() => handleBuy(listing)}>Buy Key</button>
+                        <span className="game-tile-placeholder">{listing.game.genre || 'Game'}</span>
                       )}
-                    </div>
-                  </div>
-                </div>
-              ))}
+                      <span className="tile-label">{listing.game.genre || 'Game Key'}</span>
+                      <strong>{listing.game.title}</strong>
+                      <small>{listing.game.developer}</small>
+                      <b>${listing.salePrice.toFixed(2)}</b>
+                    </button>
+                  ))}
+              </section>
             </div>
           </div>
         )}

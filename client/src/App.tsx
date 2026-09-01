@@ -549,41 +549,7 @@ function App() {
                     <span>{currentUser.username}</span>
                     <strong>KeyStone LIVE</strong>
                   </div>
-                  <section className="nxe-scene">
-                    <div className="nxe-breadcrumbs">
-                      <span>Video &amp; Music Marketplace</span>
-                      <strong>Game Marketplace</strong>
-                      <b>Store</b>
-                    </div>
-
-                    <div className="nxe-player-summary">
-                      <strong>{currentUser.username}</strong>
-                      <span>1280 G</span>
-                      <i aria-hidden="true"></i>
-                    </div>
-
-                    <button className="nxe-feature-tile" type="button" onClick={() => setActiveDashboardCard(0)}>
-                      <img src="/Keystone/space_explorer.jpg" alt="Space Explorer featured game" />
-                      <span>
-                        <strong>Game Marketplace</strong>
-                        <small>Browse games and new releases</small>
-                      </span>
-                      <b>1 of 8</b>
-                    </button>
-
-                    <div className="nxe-profile-card">
-                      <div>
-                        <strong>{currentUser.username}</strong>
-                        <span>1280 G</span>
-                      </div>
-                      <div className="nxe-rating-row">
-                        <small>RPG</small>
-                        <small>Action</small>
-                        <small>Indie</small>
-                      </div>
-                      <em>Connected</em>
-                    </div>
-
+                  <section className="nxe-scene nxe-menu-only-scene">
                     <div className="nxe-avatar-stand">
                       {dashboardAvatar}
                     </div>

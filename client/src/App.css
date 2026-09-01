@@ -984,7 +984,7 @@ h1 {
   top: clamp(142px, 24vh, 174px);
   width: calc(var(--dashboard-frame-width) - clamp(34px, 4vw, 54px));
   height: clamp(285px, 45vh, 340px);
-  overflow: hidden;
+  overflow: visible;
   perspective: 1180px;
   perspective-origin: 38% 42%;
 }
@@ -1019,6 +1019,11 @@ h1 {
 
 .nxe-menu-only-scene .nxe-menu-card strong {
   font-size: 1.25rem;
+}
+
+.nxe-menu-only-scene .nxe-menu-card:not(.active) strong {
+  justify-self: end;
+  margin-right: 1.2rem;
 }
 
 .nxe-menu-only-scene .nxe-menu-card.avatar-controls-open {

@@ -227,6 +227,7 @@ h1, h2, h3, .nav-brand {
   max-width: none;
   margin: 0;
   overflow: hidden;
+  min-height: calc(100vh - 32px);
 }
 
 .store-content-area {
@@ -558,6 +559,13 @@ h1 {
   opacity: 0.72;
 }
 
+.nxe-menu-card:nth-child(5) {
+  left: 650px;
+  z-index: 0;
+  transform: scale(0.74);
+  opacity: 0.62;
+}
+
 .nxe-menu-card strong {
   color: rgba(255,255,255,0.9);
   font-size: 1rem;
@@ -574,10 +582,15 @@ h1 {
 
 .nxe-controller.disc,
 .nxe-controller.avatar-dot,
-.nxe-controller.deal-dot {
+.nxe-controller.deal-dot,
+.nxe-controller.upload-dot {
   width: 58px;
   height: 58px;
   border-radius: 50%;
+}
+
+.back-to-store {
+  margin-bottom: 1.5rem;
 }
 
 .nxe-hints {

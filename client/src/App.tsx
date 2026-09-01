@@ -423,35 +423,10 @@ function App() {
           <button className="settings-btn" title="Settings" aria-label="Settings" onClick={() => alert('Settings coming soon.')}>⚙</button>
         </div>
       </div>
-      {activeTab !== 'marketplace' && (
-      <nav className="top-nav">
-        <div className="nav-brand">KeyStone</div>
-        <div className="nav-tabs">
-          <button 
-            className={`nav-btn ${activeTab === 'library' ? 'active' : ''}`}
-            onClick={() => setActiveTab('library')}
-          >
-            My Library
-          </button>
-          <button 
-            className="nav-btn"
-            onClick={() => setActiveTab('marketplace')}
-          >
-            Store
-          </button>
-          <button 
-            className={`nav-btn ${activeTab === 'developer' ? 'active' : ''}`}
-            onClick={() => setActiveTab('developer')}
-          >
-            Developer Portal
-          </button>
-        </div>
-      </nav>
-      )}
-
       <div className={`content-area ${activeTab === 'marketplace' ? 'store-content-area' : ''}`}>
         {activeTab === 'library' && (
           <div className="library-view">
+            <button className="btn-secondary back-to-store" onClick={() => setActiveTab('marketplace')}>Back to Store</button>
             <h1>My Library</h1>
             <p className="hint-text">💡 Tip: Right-click (or left-click) a game to see options like Sell or Export.</p>
             
@@ -528,6 +503,10 @@ function App() {
                         <span className="nxe-controller disc"></span>
                         <strong>Library</strong>
                       </button>
+                      <button type="button" className="nxe-menu-card" onClick={() => setActiveTab('developer')}>
+                        <span className="nxe-controller upload-dot"></span>
+                        <strong>Developer</strong>
+                      </button>
                       <button type="button" className="nxe-menu-card" onClick={() => alert('Avatar customization shop coming soon.')}>
                         <span className="nxe-controller avatar-dot"></span>
                         <strong>Avatar</strong>
@@ -556,6 +535,7 @@ function App() {
         )}
         {activeTab === 'developer' && (
           <div className="developer-view">
+            <button className="btn-secondary back-to-store" onClick={() => setActiveTab('marketplace')}>Back to Store</button>
             <h1>Developer Portal</h1>
             <p className="hint-text">Upload your game to KeyStone. Set your own price, and receive automatic royalties from every secondary market sale.</p>
             

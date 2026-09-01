@@ -436,9 +436,7 @@ function App() {
         <div className="titlebar-title">KeyStone Desktop</div>
         <div className="titlebar-controls">
           <button onClick={logout}>Logout</button>
-          <button onClick={() => window.keystone?.minimize()}>—</button>
-          <button onClick={() => window.keystone?.maximize()}>□</button>
-          <button className="close-btn" onClick={() => window.keystone?.close()}>✕</button>
+          <button className="settings-btn" title="Settings" aria-label="Settings" onClick={() => alert('Settings coming soon.')}>⚙</button>
         </div>
       </div>
       <nav className="top-nav">

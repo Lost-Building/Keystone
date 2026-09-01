@@ -148,7 +148,8 @@ h1, h2, h3, .nav-brand {
   background: transparent;
   border: none;
   color: #888;
-  width: 45px;
+  width: auto;
+  min-width: 45px;
   height: 100%;
   display: flex;
   align-items: center;
@@ -163,9 +164,10 @@ h1, h2, h3, .nav-brand {
   color: white;
 }
 
-.titlebar-controls .close-btn:hover {
-  background: #e74c3c;
-  color: white;
+.settings-btn {
+  color: var(--accent-color) !important;
+  font-size: 1.15rem;
+  line-height: 1;
 }
 
 /* Navigation */

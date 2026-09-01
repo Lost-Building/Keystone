@@ -206,7 +206,8 @@ function AvatarRigViewer({
 
     let disposed = false;
     let frameId = 0;
-    const clock = new THREE.Clock();
+    const timer = new THREE.Timer();
+    timer.connect(document);
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
     camera.position.set(0, 1.55, 5.2);
@@ -268,8 +269,9 @@ function AvatarRigViewer({
       }
     );
 
-    const animate = () => {
-      mixerRef.current?.update(clock.getDelta());
+    const animate = (timestamp?: number) => {
+      timer.update(timestamp);
+      mixerRef.current?.update(timer.getDelta());
       renderer.render(scene, camera);
       frameId = window.requestAnimationFrame(animate);
     };
@@ -280,6 +282,7 @@ function AvatarRigViewer({
       window.cancelAnimationFrame(frameId);
       resizeObserver.disconnect();
       mixerRef.current?.stopAllAction();
+      timer.dispose();
       renderer.dispose();
       renderer.domElement.remove();
     };

@@ -540,12 +540,6 @@ function App() {
                     <strong>KeyStone LIVE</strong>
                   </div>
                   <section className="nxe-scene">
-                    <div className="nxe-copy">
-                      <span>Video &amp; Music Marketplace</span>
-                      <strong>Game Marketplace</strong>
-                      <h2>My KeyStone</h2>
-                    </div>
-
                     <button type="button" className="nxe-feature-card" onClick={() => handleBuy(demoMarketplace[0])}>
                       <img src="/Keystone/epic_quest.jpg" alt="Epic Quest" />
                       <span>Play Epic Quest</span>

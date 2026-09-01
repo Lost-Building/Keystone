@@ -465,33 +465,10 @@ h1 {
   overflow: hidden;
 }
 
-.nxe-copy {
-  position: absolute;
-  left: 1.35rem;
-  top: 4rem;
-  z-index: 3;
-  color: rgba(255,255,255,0.9);
-  text-shadow: 0 2px 14px rgba(41, 74, 29, 0.36);
-}
-
-.nxe-copy span,
-.nxe-copy strong {
-  display: block;
-  font-size: 1rem;
-  line-height: 1.35;
-}
-
-.nxe-copy h2 {
-  color: #fff;
-  font-size: clamp(2rem, 3.4vw, 3.5rem);
-  line-height: 1;
-  margin: 0.15rem 0 0;
-}
-
 .nxe-feature-card {
   position: absolute;
   left: 1.35rem;
-  top: 9rem;
+  top: 6.5rem;
   z-index: 4;
   width: clamp(260px, 30vw, 390px);
   aspect-ratio: 1.35;
@@ -540,11 +517,11 @@ h1 {
 
 .nxe-profile-card {
   position: absolute;
-  left: clamp(240px, 26vw, 410px);
-  top: 9.2rem;
+  left: clamp(250px, 27vw, 430px);
+  top: 7.4rem;
   z-index: 2;
-  width: clamp(360px, 36vw, 520px);
-  height: 188px;
+  width: clamp(460px, 47vw, 720px);
+  height: 250px;
   padding: 1.35rem 1.45rem;
   border-radius: 3px;
   color: #f8fff3;
@@ -576,8 +553,8 @@ h1 {
 
 .nxe-avatar-stand {
   position: absolute;
-  left: clamp(330px, 35vw, 520px);
-  top: 6.8rem;
+  left: clamp(390px, 40vw, 600px);
+  top: 6.35rem;
   z-index: 5;
   width: 210px;
   pointer-events: none;
@@ -601,17 +578,17 @@ h1 {
 
 .nxe-card-stack {
   position: absolute;
-  left: clamp(510px, 50vw, 710px);
-  top: 9.45rem;
-  height: 190px;
+  left: clamp(610px, 58vw, 830px);
+  top: 7.9rem;
+  height: 250px;
   z-index: 1;
 }
 
 .nxe-menu-card {
   position: absolute;
   top: 0;
-  width: 310px;
-  height: 184px;
+  width: 380px;
+  height: 236px;
   display: grid;
   place-items: center;
   gap: 0.25rem;
@@ -629,21 +606,21 @@ h1 {
 }
 
 .nxe-menu-card:nth-child(2) {
-  left: 178px;
+  left: 218px;
   z-index: 3;
   transform: scale(0.93);
   opacity: 0.9;
 }
 
 .nxe-menu-card:nth-child(3) {
-  left: 326px;
+  left: 396px;
   z-index: 2;
   transform: scale(0.86);
   opacity: 0.82;
 }
 
 .nxe-menu-card:nth-child(4) {
-  left: 444px;
+  left: 538px;
   z-index: 1;
   transform: scale(0.8);
   opacity: 0.72;

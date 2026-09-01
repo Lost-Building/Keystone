@@ -423,6 +423,7 @@ function App() {
           <button className="settings-btn" title="Settings" aria-label="Settings" onClick={() => alert('Settings coming soon.')}>⚙</button>
         </div>
       </div>
+      {activeTab !== 'marketplace' && (
       <nav className="top-nav">
         <div className="nav-brand">KeyStone</div>
         <div className="nav-tabs">
@@ -433,7 +434,7 @@ function App() {
             My Library
           </button>
           <button 
-            className={`nav-btn ${activeTab === 'marketplace' ? 'active' : ''}`}
+            className="nav-btn"
             onClick={() => setActiveTab('marketplace')}
           >
             Store
@@ -446,8 +447,9 @@ function App() {
           </button>
         </div>
       </nav>
+      )}
 
-      <div className="content-area">
+      <div className={`content-area ${activeTab === 'marketplace' ? 'store-content-area' : ''}`}>
         {activeTab === 'library' && (
           <div className="library-view">
             <h1>My Library</h1>
@@ -488,17 +490,6 @@ function App() {
         {activeTab === 'marketplace' && (
           <div className="marketplace-view">
             <div className="xbox-shell dashboard-store-shell">
-              <header className="xbox-header">
-                <div>
-                  <span className="store-kicker">KeyStone Dashboard</span>
-                  <h1>Store</h1>
-                </div>
-                <div className="dashboard-tabs compact-tabs" aria-label="Dashboard blades">
-                  <span className="active">store</span>
-                  <span>avatars</span>
-                </div>
-              </header>
-
               <main className="blade-dashboard nxe-dashboard">
                 <aside className="blade-rail left-blades" aria-label="Left blades">
                   <span>marketplace</span>

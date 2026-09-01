@@ -229,6 +229,10 @@ h1, h2, h3, .nav-brand {
   overflow: hidden;
 }
 
+.store-content-area {
+  padding: 0;
+}
+
 h1 {
   font-size: 3rem;
   color: var(--text-light);
@@ -274,8 +278,9 @@ h1 {
 }
 
 .dashboard-store-shell {
-  height: calc(100vh - 116px);
+  height: calc(100vh - 32px);
   margin-bottom: 0;
+  border-radius: 0;
 }
 
 .blade-dashboard {
@@ -284,7 +289,7 @@ h1 {
   display: grid;
   grid-template-columns: 78px minmax(0, 1fr) 78px;
   gap: 0;
-  height: calc(100% - 118px);
+  height: 100%;
   min-height: 460px;
 }
 
@@ -328,8 +333,8 @@ h1 {
 .nxe-dashboard .blade-stage::before {
   content: "Game Marketplace";
   position: absolute;
-  left: 3rem;
-  top: 4.4rem;
+  left: 3.4rem;
+  top: 2.5rem;
   color: rgba(255,255,255,0.8);
   font-size: 1.15rem;
   font-weight: 800;
@@ -347,29 +352,6 @@ h1 {
 
 .nxe-titlebar strong {
   color: #f7fff1;
-}
-
-.nxe-dashboard .horizontal-dashboard {
-  height: calc(100% - 48px);
-  grid-template-columns: minmax(310px, 0.85fr);
-  grid-auto-columns: clamp(190px, 19vw, 285px);
-  grid-template-rows: repeat(2, minmax(0, 1fr));
-  align-items: center;
-  padding: 4.5rem 2rem 2rem;
-}
-
-.nxe-dashboard .spotlight-panel {
-  min-height: 310px;
-  align-self: center;
-  background:
-    linear-gradient(180deg, rgba(0,0,0,0.02), rgba(0,0,0,0.45)),
-    url("/Keystone/epic_quest.jpg") center / cover;
-  border: 3px solid rgba(255,255,255,0.72);
-  box-shadow: 0 22px 48px rgba(46, 55, 58, 0.38);
-}
-
-.nxe-dashboard .spotlight-panel h2 {
-  font-size: clamp(1.7rem, 3.6vw, 3.4rem);
 }
 
 .nxe-dashboard .game-feature-tile,
@@ -467,11 +449,11 @@ h1 {
 
 .nxe-profile-card {
   position: absolute;
-  left: clamp(80px, 11vw, 150px);
-  top: 7.4rem;
+  left: clamp(72px, 9vw, 130px);
+  top: 6.4rem;
   z-index: 2;
-  width: clamp(520px, 55vw, 820px);
-  height: 270px;
+  width: clamp(620px, 62vw, 940px);
+  height: 310px;
   padding: 1.35rem 1.45rem;
   border-radius: 3px;
   color: #f8fff3;
@@ -503,8 +485,8 @@ h1 {
 
 .nxe-avatar-stand {
   position: absolute;
-  left: clamp(280px, 31vw, 470px);
-  top: 6.35rem;
+  left: clamp(320px, 34vw, 540px);
+  top: 6.2rem;
   z-index: 5;
   width: 210px;
   pointer-events: none;
@@ -528,17 +510,17 @@ h1 {
 
 .nxe-card-stack {
   position: absolute;
-  left: clamp(560px, 55vw, 780px);
-  top: 7.9rem;
-  height: 250px;
+  left: clamp(660px, 61vw, 920px);
+  top: 6.75rem;
+  height: 310px;
   z-index: 1;
 }
 
 .nxe-menu-card {
   position: absolute;
   top: 0;
-  width: 380px;
-  height: 236px;
+  width: 430px;
+  height: 292px;
   display: grid;
   place-items: center;
   gap: 0.25rem;
@@ -1512,7 +1494,7 @@ button:disabled {
   }
 
   .dashboard-store-shell {
-    height: calc(100vh - 150px);
+    height: calc(100vh - 32px);
   }
 
   .blade-dashboard {

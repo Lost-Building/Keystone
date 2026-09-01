@@ -2,6 +2,69 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const IS_PUBLIC_DEMO = window.location.hostname.endsWith('github.io');
+const DEMO_TOKEN = 'keystone-public-demo-token';
+
+const demoUser: CurrentUser = {
+  id: 'user1',
+  username: 'Gamer123',
+  email: 'gamer@example.com',
+  role: 'developer'
+};
+
+const demoMarketplace: MarketplaceListing[] = [
+  {
+    keyId: 'demo-epic-quest',
+    sellerId: 'randomUser1',
+    salePrice: 12.99,
+    game: {
+      id: 'game1',
+      title: 'Epic Quest',
+      developer: 'DevStudio',
+      price: 19.99,
+      image: '/Keystone/epic_quest.jpg',
+      genre: 'RPG'
+    }
+  },
+  {
+    keyId: 'demo-space-explorer',
+    sellerId: 'randomUser2',
+    salePrice: 7.49,
+    game: {
+      id: 'game2',
+      title: 'Space Explorer',
+      developer: 'Cosmic Games',
+      price: 9.99,
+      image: '/Keystone/space_explorer.jpg',
+      genre: 'Sci-Fi'
+    }
+  },
+  {
+    keyId: 'demo-cyber-city',
+    sellerId: 'randomUser3',
+    salePrice: 18.5,
+    game: {
+      id: 'game3',
+      title: 'Cyber City',
+      developer: 'Neon Inc',
+      price: 29.99,
+      genre: 'Action'
+    }
+  }
+];
+
+const demoLibrary: LibraryItem[] = [
+  {
+    keyId: 'key-123',
+    isListedForSale: false,
+    game: demoMarketplace[0].game
+  },
+  {
+    keyId: 'key-456',
+    isListedForSale: false,
+    game: demoMarketplace[1].game
+  }
+];
 
 interface Game {
   id: string;
@@ -71,6 +134,12 @@ function App() {
   useEffect(() => {
     if (!token) return;
 
+    if (IS_PUBLIC_DEMO && token === DEMO_TOKEN) {
+      setCurrentUser(demoUser);
+      setMarketplace(demoMarketplace);
+      return;
+    }
+
     apiFetch('/api/auth/me')
       .then(async (response) => {
         if (!response.ok) throw new Error('Session expired');
@@ -95,6 +164,11 @@ function App() {
   }, [activeTab, currentUser]);
 
   const fetchLibrary = async () => {
+    if (IS_PUBLIC_DEMO) {
+      setLibrary(demoLibrary);
+      return;
+    }
+
     try {
       const response = await apiFetch('/api/library/me');
       const data = await response.json();
@@ -105,6 +179,11 @@ function App() {
   };
 
   const fetchMarketplace = async () => {
+    if (IS_PUBLIC_DEMO) {
+      setMarketplace(demoMarketplace);
+      return;
+    }
+
     try {
       const response = await apiFetch('/api/marketplace');
       const data = await response.json();
@@ -140,6 +219,13 @@ function App() {
   const submitSell = async () => {
     if (!sellModal || !sellPrice) return;
 
+    if (IS_PUBLIC_DEMO) {
+      alert('Demo mode: this would list your game on the live marketplace once the backend is hosted.');
+      setSellModal(null);
+      setSellPrice('');
+      return;
+    }
+
     try {
       const response = await apiFetch('/api/marketplace/sell', {
         method: 'POST',
@@ -162,6 +248,11 @@ function App() {
   };
 
   const handleBuy = async (listing: MarketplaceListing) => {
+    if (IS_PUBLIC_DEMO) {
+      alert(`Demo mode: Stripe Checkout would open for ${listing.game.title} at $${listing.salePrice.toFixed(2)} once the backend is hosted.`);
+      return;
+    }
+
     try {
       const response = await apiFetch('/api/checkout/marketplace', {
         method: 'POST',
@@ -200,6 +291,15 @@ function App() {
           identifier: formData.get('email'),
           password: formData.get('password')
         };
+
+    if (IS_PUBLIC_DEMO) {
+      localStorage.setItem('authToken', DEMO_TOKEN);
+      setToken(DEMO_TOKEN);
+      setCurrentUser(demoUser);
+      setMarketplace(demoMarketplace);
+      setActiveTab('marketplace');
+      return;
+    }
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/auth/${authMode}`, {

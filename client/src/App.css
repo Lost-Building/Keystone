@@ -453,6 +453,8 @@ h1 {
 }
 
 .nxe-menu-only-scene {
+  --dashboard-frame-width: min(1126px, 100vw);
+  --dashboard-frame-left: calc((100% - var(--dashboard-frame-width)) / 2);
   overflow: visible;
 }
 
@@ -978,9 +980,9 @@ h1 {
 }
 
 .nxe-menu-only-scene .nxe-card-stack {
-  left: clamp(34px, 4vw, 54px);
+  left: calc(var(--dashboard-frame-left) + clamp(34px, 4vw, 54px));
   top: clamp(142px, 24vh, 174px);
-  width: calc(100% - clamp(34px, 4vw, 54px));
+  width: calc(var(--dashboard-frame-width) - clamp(34px, 4vw, 54px));
   height: clamp(285px, 45vh, 340px);
   overflow: hidden;
   perspective: 1180px;
@@ -1042,10 +1044,11 @@ h1 {
 }
 
 .nxe-menu-only-scene .nxe-avatar-stand {
-  left: calc(clamp(560px, 55vw, 660px) - 420px);
+  left: calc(var(--dashboard-frame-left) + clamp(560px, 55vw, 660px) + 180px);
   top: min(calc(100vh - 660px), 250px);
   z-index: 30;
-  width: 1200px;
+  width: 2800px;
+  transform: translateX(-50%);
 }
 
 .nxe-menu-only-scene .nxe-avatar-stand .avatar-stage {
@@ -1054,7 +1057,7 @@ h1 {
 }
 
 .nxe-menu-only-scene .nxe-avatar-stand .avatar-rig-viewer {
-  width: 1200px;
+  width: 2800px;
   max-width: none;
   height: 520px;
   margin-bottom: 0;
@@ -1080,6 +1083,7 @@ h1 {
 }
 
 .nxe-menu-only-scene .nxe-hints {
+  left: calc(var(--dashboard-frame-left) + clamp(54px, 7vw, 92px));
   bottom: 1.3rem;
 }
 

@@ -1087,6 +1087,10 @@ h1 {
   filter: blur(2px);
 }
 
+.nxe-menu-only-scene .dashboard-avatar-card.has-rig > .avatar-stage > .avatar-shadow {
+  display: none;
+}
+
 .nxe-menu-only-scene .nxe-hints {
   left: calc(var(--dashboard-frame-left) + clamp(54px, 7vw, 92px));
   bottom: 1.3rem;

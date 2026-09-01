@@ -210,7 +210,8 @@ function AvatarRigViewer({
     timer.connect(document);
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
-    camera.position.set(0, 1.55, 5.2);
+    camera.position.set(0, 1.35, 5.6);
+    camera.lookAt(0, 1.2, 0);
     const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
     renderer.setClearColor(0x000000, 0);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -221,6 +222,15 @@ function AvatarRigViewer({
     keyLight.position.set(2.8, 4.2, 3.5);
     scene.add(keyLight);
     scene.add(new THREE.HemisphereLight(0xf7ffe4, 0x31410f, 1.65));
+
+    const groundShadow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.9, 64),
+      new THREE.MeshBasicMaterial({ color: 0x253125, transparent: true, opacity: 0.28, depthWrite: false })
+    );
+    groundShadow.rotation.x = -Math.PI / 2;
+    groundShadow.scale.set(1.35, 0.5, 1);
+    groundShadow.position.y = -0.015;
+    scene.add(groundShadow);
 
     const resize = () => {
       const width = Math.max(1, mount.clientWidth);
@@ -245,11 +255,13 @@ function AvatarRigViewer({
         const model = gltf.scene;
         const box = new THREE.Box3().setFromObject(model);
         const size = box.getSize(new THREE.Vector3());
-        const center = box.getCenter(new THREE.Vector3());
         const maxDimension = Math.max(size.x, size.y, size.z) || 1;
         const viewerHeightScale = Math.min(1, 420 / Math.max(mount.clientHeight, 1));
-        model.position.set(-center.x, -box.min.y, -center.z);
         model.scale.setScalar((2.45 * viewerHeightScale) / maxDimension);
+
+        const fittedBox = new THREE.Box3().setFromObject(model);
+        const fittedCenter = fittedBox.getCenter(new THREE.Vector3());
+        model.position.set(-fittedCenter.x, -fittedBox.min.y, -fittedCenter.z);
         scene.add(model);
 
         const clips = gltf.animations.slice(0, MAX_AVATAR_ANIMATIONS);
@@ -688,7 +700,7 @@ function App() {
   }, [dashboardCardCount]);
 
   const dashboardAvatar = (
-      <div className="avatar-card dashboard-avatar-card">
+      <div className={`avatar-card dashboard-avatar-card ${avatarRigUrl ? 'has-rig' : ''}`}>
       <div className="avatar-stage">
         <div className="avatar-shadow"></div>
         <div className="avatar-actor">

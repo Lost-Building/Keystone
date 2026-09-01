@@ -100,6 +100,7 @@ function App() {
   const [activeTab, setActiveTab] = useState<'library' | 'marketplace' | 'developer'>('marketplace');
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [, setMarketplace] = useState<MarketplaceListing[]>([]);
+  const [activeDashboardCard, setActiveDashboardCard] = useState(0);
   
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, item: LibraryItem | null } | null>(null);
   const [sellModal, setSellModal] = useState<LibraryItem | null>(null);
@@ -299,6 +300,69 @@ function App() {
     setMarketplace([]);
   };
 
+  const enterPublicDemo = () => {
+    localStorage.setItem('authToken', DEMO_TOKEN);
+    setToken(DEMO_TOKEN);
+    setCurrentUser(demoUser);
+    setMarketplace(demoMarketplace);
+    setActiveTab('marketplace');
+  };
+
+  const dashboardCards = [
+    {
+      label: 'Store',
+      icon: 'controller',
+      action: () => alert('Store home selected.')
+    },
+    {
+      label: 'Library',
+      icon: 'disc',
+      action: () => setActiveTab('library')
+    },
+    {
+      label: 'Developer',
+      icon: 'upload-dot',
+      action: () => setActiveTab('developer')
+    },
+    {
+      label: 'Avatar',
+      icon: 'avatar-dot',
+      action: () => alert('Avatar customization shop coming soon.')
+    },
+    {
+      label: 'Deals',
+      icon: 'deal-dot',
+      action: () => alert('Deals refresh daily in the Store.')
+    }
+  ];
+
+  const publicDashboardCards = [
+    {
+      label: 'Store',
+      icon: 'controller',
+      action: enterPublicDemo
+    },
+    {
+      label: 'Create Profile',
+      icon: 'upload-dot',
+      action: () => setAuthMode('register')
+    },
+    {
+      label: 'Avatar',
+      icon: 'avatar-dot',
+      action: () => alert('Avatar customization shop coming soon.')
+    },
+    {
+      label: 'Deals',
+      icon: 'deal-dot',
+      action: () => alert('Deals refresh daily in the Store.')
+    }
+  ];
+
+  const moveDashboardCard = (direction: -1 | 1, cardCount: number) => {
+    setActiveDashboardCard((current) => (current + direction + cardCount) % cardCount);
+  };
+
   const dashboardAvatar = (
     <div className="avatar-card dashboard-avatar-card">
       <div className="avatar-stage">
@@ -364,34 +428,28 @@ function App() {
                 </div>
 
                 <div className="nxe-card-stack" aria-label="Dashboard menu">
-                  <button type="button" className="nxe-menu-card active" onClick={() => {
-                    localStorage.setItem('authToken', DEMO_TOKEN);
-                    setToken(DEMO_TOKEN);
-                    setCurrentUser(demoUser);
-                    setMarketplace(demoMarketplace);
-                    setActiveTab('marketplace');
-                  }}>
-                    <span className="nxe-controller"></span>
-                    <strong>Store</strong>
-                  </button>
-                  <button type="button" className="nxe-menu-card" onClick={() => setAuthMode('register')}>
-                    <span className="nxe-controller upload-dot"></span>
-                    <strong>Create Profile</strong>
-                  </button>
-                  <button type="button" className="nxe-menu-card" onClick={() => alert('Avatar customization shop coming soon.')}>
-                    <span className="nxe-controller avatar-dot"></span>
-                    <strong>Avatar</strong>
-                  </button>
-                  <button type="button" className="nxe-menu-card" onClick={() => alert('Deals refresh daily in the Store.')}>
-                    <span className="nxe-controller deal-dot"></span>
-                    <strong>Deals</strong>
-                  </button>
+                  {publicDashboardCards.map((card, index) => {
+                    const offset = (index - activeDashboardCard + publicDashboardCards.length) % publicDashboardCards.length;
+                    const normalizedOffset = offset > publicDashboardCards.length / 2 ? offset - publicDashboardCards.length : offset;
+                    return (
+                      <button
+                        type="button"
+                        className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''}`}
+                        style={{ '--card-offset': normalizedOffset } as React.CSSProperties}
+                        key={card.label}
+                        onClick={() => index === activeDashboardCard ? card.action() : setActiveDashboardCard(index)}
+                      >
+                        <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
+                        <strong>{card.label}</strong>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <div className="nxe-hints">
                   <span>A Select</span>
-                  <span>X Details</span>
-                  <span>Y Game Marketplace</span>
+                  <button type="button" onClick={() => moveDashboardCard(-1, publicDashboardCards.length)}>&lt; Previous</button>
+                  <button type="button" onClick={() => moveDashboardCard(1, publicDashboardCards.length)}>Next &gt;</button>
                 </div>
               </section>
             </section>
@@ -488,32 +546,28 @@ function App() {
                     </div>
 
                     <div className="nxe-card-stack" aria-label="Dashboard menu">
-                      <button type="button" className="nxe-menu-card active" onClick={() => alert('Store home selected.')}>
-                        <span className="nxe-controller"></span>
-                        <strong>Store</strong>
-                      </button>
-                      <button type="button" className="nxe-menu-card" onClick={() => setActiveTab('library')}>
-                        <span className="nxe-controller disc"></span>
-                        <strong>Library</strong>
-                      </button>
-                      <button type="button" className="nxe-menu-card" onClick={() => setActiveTab('developer')}>
-                        <span className="nxe-controller upload-dot"></span>
-                        <strong>Developer</strong>
-                      </button>
-                      <button type="button" className="nxe-menu-card" onClick={() => alert('Avatar customization shop coming soon.')}>
-                        <span className="nxe-controller avatar-dot"></span>
-                        <strong>Avatar</strong>
-                      </button>
-                      <button type="button" className="nxe-menu-card" onClick={() => alert('Deals refresh daily in the Store.')}>
-                        <span className="nxe-controller deal-dot"></span>
-                        <strong>Deals</strong>
-                      </button>
+                      {dashboardCards.map((card, index) => {
+                        const offset = (index - activeDashboardCard + dashboardCards.length) % dashboardCards.length;
+                        const normalizedOffset = offset > dashboardCards.length / 2 ? offset - dashboardCards.length : offset;
+                        return (
+                          <button
+                            type="button"
+                            className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''}`}
+                            style={{ '--card-offset': normalizedOffset } as React.CSSProperties}
+                            key={card.label}
+                            onClick={() => index === activeDashboardCard ? card.action() : setActiveDashboardCard(index)}
+                          >
+                            <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
+                            <strong>{card.label}</strong>
+                          </button>
+                        );
+                      })}
                     </div>
 
                     <div className="nxe-hints">
                       <span>A Select</span>
-                      <span>X Details</span>
-                      <span>Y Game Marketplace</span>
+                      <button type="button" onClick={() => moveDashboardCard(-1, dashboardCards.length)}>&lt; Previous</button>
+                      <button type="button" onClick={() => moveDashboardCard(1, dashboardCards.length)}>Next &gt;</button>
                     </div>
                   </section>
                 </section>

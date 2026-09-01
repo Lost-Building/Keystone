@@ -467,7 +467,7 @@ h1 {
 
 .nxe-copy {
   position: absolute;
-  left: 3.2rem;
+  left: 1.35rem;
   top: 4rem;
   z-index: 3;
   color: rgba(255,255,255,0.9);
@@ -490,7 +490,7 @@ h1 {
 
 .nxe-feature-card {
   position: absolute;
-  left: 3.2rem;
+  left: 1.35rem;
   top: 9rem;
   z-index: 4;
   width: clamp(260px, 30vw, 390px);
@@ -540,12 +540,12 @@ h1 {
 
 .nxe-profile-card {
   position: absolute;
-  left: clamp(390px, 41vw, 610px);
-  top: 10.6rem;
+  left: clamp(240px, 26vw, 410px);
+  top: 9.2rem;
   z-index: 2;
-  width: 300px;
-  height: 152px;
-  padding: 1rem 1.1rem;
+  width: clamp(360px, 36vw, 520px);
+  height: 188px;
+  padding: 1.35rem 1.45rem;
   border-radius: 3px;
   color: #f8fff3;
   background: linear-gradient(90deg, #dbff35 0%, #98d719 58%, #73b40f 100%);
@@ -576,10 +576,10 @@ h1 {
 
 .nxe-avatar-stand {
   position: absolute;
-  left: clamp(470px, 49vw, 690px);
-  top: 7.2rem;
+  left: clamp(330px, 35vw, 520px);
+  top: 6.8rem;
   z-index: 5;
-  width: 190px;
+  width: 210px;
   pointer-events: none;
 }
 
@@ -601,17 +601,17 @@ h1 {
 
 .nxe-card-stack {
   position: absolute;
-  left: clamp(620px, 62vw, 860px);
-  top: 10.8rem;
-  height: 150px;
+  left: clamp(510px, 50vw, 710px);
+  top: 9.45rem;
+  height: 190px;
   z-index: 1;
 }
 
 .nxe-menu-card {
   position: absolute;
   top: 0;
-  width: 230px;
-  height: 142px;
+  width: 310px;
+  height: 184px;
   display: grid;
   place-items: center;
   gap: 0.25rem;
@@ -629,21 +629,21 @@ h1 {
 }
 
 .nxe-menu-card:nth-child(2) {
-  left: 132px;
+  left: 178px;
   z-index: 3;
   transform: scale(0.93);
   opacity: 0.9;
 }
 
 .nxe-menu-card:nth-child(3) {
-  left: 242px;
+  left: 326px;
   z-index: 2;
   transform: scale(0.86);
   opacity: 0.82;
 }
 
 .nxe-menu-card:nth-child(4) {
-  left: 330px;
+  left: 444px;
   z-index: 1;
   transform: scale(0.8);
   opacity: 0.72;
@@ -673,7 +673,7 @@ h1 {
 
 .nxe-hints {
   position: absolute;
-  left: 3.2rem;
+  left: 1.35rem;
   bottom: 1.05rem;
   z-index: 6;
   display: flex;

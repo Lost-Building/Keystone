@@ -33,6 +33,21 @@ h1, h2, h3, .nav-brand {
   box-sizing: border-box;
 }
 
+.public-store-shell {
+  min-height: 100vh;
+  padding: 2rem;
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(340px, 420px);
+  gap: 1.25rem;
+  align-items: stretch;
+}
+
+.public-store-hero {
+  min-height: calc(100vh - 4rem);
+  margin: 0;
+}
+
 .auth-panel {
   width: min(420px, 100%);
   background: rgba(31, 40, 51, 0.82);
@@ -40,6 +55,7 @@ h1, h2, h3, .nav-brand {
   border-radius: 8px;
   padding: 2rem;
   box-shadow: 0 20px 50px rgba(0,0,0,0.55);
+  align-self: center;
 }
 
 .auth-panel h1 {
@@ -222,28 +238,257 @@ h1 {
   font-size: 1.1rem;
 }
 
-/* Hero Section for Marketplace */
-.marketplace-hero {
-  background: linear-gradient(90deg, rgba(31, 40, 51, 0.8) 0%, rgba(69, 162, 158, 0.2) 100%);
-  border-radius: 16px;
-  padding: 3rem;
-  margin-bottom: 3rem;
-  border: 1px solid rgba(102, 252, 241, 0.2);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+/* Store front */
+.store-front {
+  margin-bottom: 2rem;
 }
 
-.marketplace-hero h2 {
-  color: var(--accent-color);
-  font-size: 2.5rem;
-  margin: 0 0 1rem 0;
+.store-hero {
+  background:
+    linear-gradient(135deg, rgba(31, 40, 51, 0.94), rgba(49, 35, 68, 0.72)),
+    linear-gradient(45deg, rgba(102, 252, 241, 0.08), rgba(255, 216, 102, 0.1));
+  border-radius: 8px;
+  padding: 2rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(102, 252, 241, 0.22);
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.8fr);
+  gap: 2rem;
+  align-items: center;
+  min-height: 380px;
 }
 
-.marketplace-hero p {
-  font-size: 1.2rem;
-  max-width: 600px;
+.store-kicker {
+  color: #ffd866;
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  margin-bottom: 0.8rem;
+  text-transform: uppercase;
+}
+
+.store-hero h1 {
+  max-width: 760px;
+  font-size: clamp(2.4rem, 5vw, 4.9rem);
+  line-height: 0.95;
+  margin-bottom: 1rem;
+}
+
+.store-hero p,
+.avatar-market p {
+  font-size: 1.05rem;
   line-height: 1.6;
+  max-width: 660px;
+}
+
+.store-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1.6rem;
+}
+
+.avatar-showcase {
+  justify-self: end;
+  width: min(390px, 100%);
+}
+
+.avatar-card {
+  background: rgba(11, 12, 16, 0.74);
+  border: 1px solid rgba(255, 216, 102, 0.22);
+  border-radius: 8px;
+  padding: 1.25rem;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.38);
+}
+
+.avatar-stage {
+  min-height: 270px;
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(102, 252, 241, 0.12), rgba(11, 12, 16, 0.2)),
+    repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 38px);
+  display: grid;
+  place-items: end center;
+  overflow: hidden;
+  position: relative;
+}
+
+.avatar-body {
+  position: relative;
+  width: 138px;
+  height: 238px;
+  margin-bottom: 18px;
+}
+
+.avatar-shadow {
+  position: absolute;
+  bottom: 22px;
+  width: 174px;
+  height: 24px;
+  background: rgba(0,0,0,0.42);
+  border-radius: 50%;
+}
+
+.avatar-head {
+  position: absolute;
+  left: 31px;
+  top: 0;
+  width: 76px;
+  height: 82px;
+  background: #f0b88f;
+  border-radius: 36px 36px 30px 30px;
+  box-shadow: inset 0 -7px 0 rgba(0,0,0,0.08);
+  z-index: 3;
+}
+
+.avatar-hair {
+  position: absolute;
+  inset: -7px 4px auto;
+  height: 32px;
+  background: #2d2437;
+  border-radius: 34px 34px 12px 12px;
+}
+
+.avatar-eye {
+  position: absolute;
+  top: 41px;
+  width: 8px;
+  height: 8px;
+  background: #15151f;
+  border-radius: 50%;
+}
+
+.avatar-eye.left {
+  left: 24px;
+}
+
+.avatar-eye.right {
+  right: 24px;
+}
+
+.avatar-smile {
+  position: absolute;
+  left: 29px;
+  top: 56px;
+  width: 18px;
+  height: 8px;
+  border-bottom: 3px solid #7a3e44;
+  border-radius: 50%;
+}
+
+.avatar-torso {
+  position: absolute;
+  left: 15px;
+  top: 76px;
+  width: 108px;
+  height: 104px;
+  background: #66fcf1;
+  border-radius: 30px 30px 24px 24px;
+  box-shadow: inset 0 -18px 0 rgba(0,0,0,0.13);
+  z-index: 2;
+}
+
+.avatar-jacket {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #2e3144 0 26%, transparent 26% 74%, #2e3144 74%);
+  border-radius: inherit;
+}
+
+.avatar-legs {
+  position: absolute;
+  left: 34px;
+  top: 170px;
+  width: 70px;
+  height: 62px;
+  background: linear-gradient(90deg, #252b35 0 45%, transparent 45% 55%, #252b35 55%);
+  border-radius: 0 0 18px 18px;
+}
+
+.avatar-profile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.avatar-profile strong,
+.avatar-item strong {
+  color: var(--text-light);
+  display: block;
+}
+
+.profile-label,
+.avatar-item small {
+  color: #9aa3a7;
+  display: block;
+  font-size: 0.8rem;
+}
+
+.profile-price,
+.avatar-item b {
+  color: #ffd866;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.3rem;
+  white-space: nowrap;
+}
+
+.avatar-market {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(0, 1.2fr);
+  gap: 1.25rem;
+  align-items: stretch;
+  margin-bottom: 2rem;
+}
+
+.avatar-market-copy,
+.avatar-item {
+  background: rgba(31, 40, 51, 0.66);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.avatar-market h2 {
+  color: var(--text-light);
+  font-size: 2rem;
+  margin: 0 0 0.5rem;
+}
+
+.avatar-items {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.avatar-item {
+  color: var(--text-main);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+  text-align: left;
+}
+
+.avatar-item:hover {
+  border-color: rgba(255, 216, 102, 0.45);
+  transform: translateY(-2px);
+}
+
+.public-avatar-items {
+  grid-template-columns: 1fr;
+  max-width: 640px;
+  margin-top: 1.5rem;
+}
+
+.item-swatch {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #66fcf1, #ffd866 52%, #ff7a90);
+  box-shadow: 0 0 20px rgba(102, 252, 241, 0.18);
 }
 
 /* Grid & Cards */
@@ -476,4 +721,53 @@ button {
 button:disabled {
   opacity: 0.3;
   cursor: not-allowed;
+}
+
+@media (max-width: 900px) {
+  .public-store-shell {
+    grid-template-columns: 1fr;
+    padding: 1.25rem;
+  }
+
+  .public-store-hero {
+    min-height: auto;
+  }
+
+  .top-nav {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+  }
+
+  .nav-brand {
+    margin-right: 0;
+  }
+
+  .nav-tabs {
+    gap: 1.1rem;
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  .content-area {
+    padding: 1.25rem;
+  }
+
+  .store-hero,
+  .avatar-market {
+    grid-template-columns: 1fr;
+  }
+
+  .avatar-showcase {
+    justify-self: stretch;
+  }
+
+  .avatar-items {
+    grid-template-columns: 1fr;
+  }
+
+  .marketplace-controls {
+    flex-direction: column;
+  }
 }

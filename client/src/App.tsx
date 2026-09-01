@@ -34,7 +34,7 @@ interface CurrentUser {
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'library' | 'marketplace' | 'developer'>('library');
+  const [activeTab, setActiveTab] = useState<'library' | 'marketplace' | 'developer'>('marketplace');
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [marketplace, setMarketplace] = useState<MarketplaceListing[]>([]);
   
@@ -217,7 +217,7 @@ function App() {
       localStorage.setItem('authToken', data.token);
       setToken(data.token);
       setCurrentUser(data.user);
-      setActiveTab('library');
+      setActiveTab('marketplace');
     } catch {
       setAuthError('Could not reach KeyStone backend');
     }
@@ -234,7 +234,58 @@ function App() {
   if (!token || !currentUser) {
     return (
       <div className="app-container">
-        <div className="auth-shell">
+        <div className="public-store-shell">
+          <section className="store-hero public-store-hero">
+            <div className="store-hero-copy">
+              <span className="store-kicker">KeyStone Store</span>
+              <h1>Start in the Store</h1>
+              <p>Buy games, trade player-owned keys, and build a console-style avatar with outfits, emotes, profile rooms, and collectible drops.</p>
+              <div className="avatar-items public-avatar-items">
+                {[
+                  ['Arcade Pilot Set', 'Featured outfit', '$4.99'],
+                  ['Victory Spin', 'Emote', '$1.49'],
+                  ['Neon Room Kit', 'Profile space', '$5.99']
+                ].map(([name, type, price]) => (
+                  <div className="avatar-item" key={name}>
+                    <span className="item-swatch"></span>
+                    <span>
+                      <strong>{name}</strong>
+                      <small>{type}</small>
+                    </span>
+                    <b>{price}</b>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <aside className="avatar-showcase" aria-label="Avatar preview and featured items">
+              <div className="avatar-card">
+                <div className="avatar-stage">
+                  <div className="avatar-shadow"></div>
+                  <div className="avatar-body">
+                    <div className="avatar-head">
+                      <span className="avatar-hair"></span>
+                      <span className="avatar-eye left"></span>
+                      <span className="avatar-eye right"></span>
+                      <span className="avatar-smile"></span>
+                    </div>
+                    <div className="avatar-torso">
+                      <span className="avatar-jacket"></span>
+                    </div>
+                    <div className="avatar-legs"></div>
+                  </div>
+                </div>
+                <div className="avatar-profile">
+                  <div>
+                    <span className="profile-label">Player Preview</span>
+                    <strong>{authMode === 'register' ? 'Create your avatar' : 'Welcome back'}</strong>
+                  </div>
+                  <span className="profile-price">Store</span>
+                </div>
+              </div>
+            </aside>
+          </section>
+
           <form className="auth-panel" onSubmit={handleAuthSubmit}>
             <h1>KeyStone</h1>
             <div className="auth-tabs">
@@ -280,7 +331,7 @@ function App() {
             className={`nav-btn ${activeTab === 'marketplace' ? 'active' : ''}`}
             onClick={() => setActiveTab('marketplace')}
           >
-            Marketplace
+            Store
           </button>
           <button 
             className={`nav-btn ${activeTab === 'developer' ? 'active' : ''}`}
@@ -331,12 +382,72 @@ function App() {
 
         {activeTab === 'marketplace' && (
           <div className="marketplace-view">
-            <div className="marketplace-hero">
-              <h2>Discover & Trade</h2>
-              <p>Welcome to the KeyStone Marketplace. Buy keys directly from other players securely. Every sale supports the original developers through automated smart contract royalties.</p>
+            <div className="store-front">
+              <section className="store-hero">
+                <div className="store-hero-copy">
+                  <span className="store-kicker">KeyStone Store</span>
+                  <h1>Games, gear, and your player identity in one place</h1>
+                  <p>Buy new releases, trade player-owned keys, and build an avatar that feels like the classic console era with a KeyStone twist.</p>
+                  <div className="store-actions">
+                    <button className="btn-primary" onClick={() => document.getElementById('store-games')?.scrollIntoView({ behavior: 'smooth' })}>Browse Games</button>
+                    <button className="btn-secondary" onClick={() => alert('Avatar customization shop coming soon.')}>Customize Avatar</button>
+                  </div>
+                </div>
+
+                <aside className="avatar-showcase" aria-label="Avatar preview and featured items">
+                  <div className="avatar-card">
+                    <div className="avatar-stage">
+                      <div className="avatar-shadow"></div>
+                      <div className="avatar-body">
+                        <div className="avatar-head">
+                          <span className="avatar-hair"></span>
+                          <span className="avatar-eye left"></span>
+                          <span className="avatar-eye right"></span>
+                          <span className="avatar-smile"></span>
+                        </div>
+                        <div className="avatar-torso">
+                          <span className="avatar-jacket"></span>
+                        </div>
+                        <div className="avatar-legs"></div>
+                      </div>
+                    </div>
+                    <div className="avatar-profile">
+                      <div>
+                        <span className="profile-label">Today&apos;s Avatar Drop</span>
+                        <strong>Arcade Pilot Set</strong>
+                      </div>
+                      <span className="profile-price">$4.99</span>
+                    </div>
+                  </div>
+                </aside>
+              </section>
+
+              <section className="avatar-market">
+                <div className="avatar-market-copy">
+                  <span className="store-kicker">Avatar Market</span>
+                  <h2>Make identity sellable</h2>
+                  <p>Outfits, animated emotes, room props, profile poses, and collectible badges can live beside games as store inventory.</p>
+                </div>
+                <div className="avatar-items">
+                  {[
+                    ['Holo Hoodie', 'Rare jacket', '$2.99'],
+                    ['Victory Spin', 'Emote', '$1.49'],
+                    ['Neon Room Kit', 'Profile space', '$5.99']
+                  ].map(([name, type, price]) => (
+                    <button type="button" className="avatar-item" key={name} onClick={() => alert(`${name} preview coming soon.`)}>
+                      <span className="item-swatch"></span>
+                      <span>
+                        <strong>{name}</strong>
+                        <small>{type}</small>
+                      </span>
+                      <b>{price}</b>
+                    </button>
+                  ))}
+                </div>
+              </section>
             </div>
             
-            <div className="marketplace-controls" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
+            <div className="marketplace-controls" id="store-games" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
               <input 
                 type="text" 
                 placeholder="Search games..." 

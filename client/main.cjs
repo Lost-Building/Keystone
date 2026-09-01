@@ -21,7 +21,7 @@ function createWindow() {
   });
 
   // Load the Vite dev server URL
-  const devUrl = 'http://localhost:5173';
+  const devUrl = 'http://localhost:5173/Keystone/';
   mainWindow.loadURL(devUrl);
 
   // mainWindow.webContents.openDevTools();

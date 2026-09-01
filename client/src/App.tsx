@@ -1,9 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './App.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const IS_PUBLIC_DEMO = window.location.hostname.endsWith('github.io') || new URLSearchParams(window.location.search).has('demo');
 const DEMO_TOKEN = 'keystone-public-demo-token';
+const AVATAR_IMAGE_KEY = 'keystoneAvatarImage';
+const AVATAR_ANIMATION_KEY = 'keystoneAvatarAnimation';
+
+type AvatarAnimation = 'idle' | 'wave' | 'hop' | 'spin' | 'power';
+
+const avatarAnimations: { id: AvatarAnimation; label: string }[] = [
+  { id: 'idle', label: 'Idle' },
+  { id: 'wave', label: 'Wave' },
+  { id: 'hop', label: 'Hop' },
+  { id: 'spin', label: 'Spin' },
+  { id: 'power', label: 'Power' }
+];
 
 const demoUser: CurrentUser = {
   id: 'user1',
@@ -101,6 +113,13 @@ function App() {
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [, setMarketplace] = useState<MarketplaceListing[]>([]);
   const [activeDashboardCard, setActiveDashboardCard] = useState(0);
+  const [customAvatar, setCustomAvatar] = useState(() => localStorage.getItem(AVATAR_IMAGE_KEY) || '');
+  const [avatarAnimation, setAvatarAnimation] = useState<AvatarAnimation>(() => {
+    const savedAnimation = localStorage.getItem(AVATAR_ANIMATION_KEY);
+    const matchingAnimation = avatarAnimations.find((animation) => animation.id === savedAnimation);
+    return matchingAnimation?.id || 'idle';
+  });
+  const avatarInputRef = useRef<HTMLInputElement>(null);
   
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, item: LibraryItem | null } | null>(null);
   const [sellModal, setSellModal] = useState<LibraryItem | null>(null);
@@ -308,6 +327,84 @@ function App() {
     setActiveTab('marketplace');
   };
 
+  const openAvatarUpload = () => {
+    avatarInputRef.current?.click();
+  };
+
+  const resizeAvatarImage = (file: File) => new Promise<string>((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+
+    image.onload = () => {
+      const maxSize = 520;
+      const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      const context = canvas.getContext('2d');
+
+      URL.revokeObjectURL(objectUrl);
+
+      if (!context) {
+        reject(new Error('Canvas unavailable'));
+        return;
+      }
+
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL('image/png'));
+    };
+
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error('Image could not be loaded'));
+    };
+
+    image.src = objectUrl;
+  });
+
+  const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.currentTarget.files?.[0];
+    if (!file) return;
+
+    try {
+      const avatarData = await resizeAvatarImage(file);
+      localStorage.setItem(AVATAR_IMAGE_KEY, avatarData);
+      setCustomAvatar(avatarData);
+      setAvatarAnimation('idle');
+      localStorage.setItem(AVATAR_ANIMATION_KEY, 'idle');
+    } catch {
+      alert('Could not use that avatar image. Try a PNG or JPG.');
+    } finally {
+      event.currentTarget.value = '';
+    }
+  };
+
+  const selectAvatarAnimation = (animation: AvatarAnimation) => {
+    setAvatarAnimation(animation);
+    localStorage.setItem(AVATAR_ANIMATION_KEY, animation);
+  };
+
+  const renderAvatarControls = () => (
+    <div className="avatar-card-controls" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
+      <button type="button" className="avatar-upload-button" onClick={openAvatarUpload}>
+        Upload Avatar
+      </button>
+      <div className="avatar-animation-row" aria-label="Avatar animations">
+        {avatarAnimations.map((animation) => (
+          <button
+            type="button"
+            className={animation.id === avatarAnimation ? 'active' : ''}
+            key={animation.id}
+            onClick={() => selectAvatarAnimation(animation.id)}
+          >
+            {animation.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   const dashboardCards = [
     {
       label: 'Store',
@@ -327,7 +424,7 @@ function App() {
     {
       label: 'Avatar',
       icon: 'avatar-dot',
-      action: () => alert('Avatar customization shop coming soon.')
+      action: openAvatarUpload
     },
     {
       label: 'Deals',
@@ -350,7 +447,7 @@ function App() {
     {
       label: 'Avatar',
       icon: 'avatar-dot',
-      action: () => alert('Avatar customization shop coming soon.')
+      action: openAvatarUpload
     },
     {
       label: 'Deals',
@@ -383,20 +480,26 @@ function App() {
   }, [dashboardCardCount]);
 
   const dashboardAvatar = (
-    <div className="avatar-card dashboard-avatar-card">
+      <div className="avatar-card dashboard-avatar-card">
       <div className="avatar-stage">
         <div className="avatar-shadow"></div>
-        <div className="avatar-body">
-          <div className="avatar-head">
-            <span className="avatar-hair"></span>
-            <span className="avatar-eye left"></span>
-            <span className="avatar-eye right"></span>
-            <span className="avatar-smile"></span>
-          </div>
-          <div className="avatar-torso">
-            <span className="avatar-jacket"></span>
-          </div>
-          <div className="avatar-legs"></div>
+        <div className={`avatar-actor avatar-motion-${avatarAnimation}`}>
+          {customAvatar ? (
+            <img className="uploaded-avatar-image" src={customAvatar} alt="Custom avatar" />
+          ) : (
+            <div className="avatar-body">
+              <div className="avatar-head">
+                <span className="avatar-hair"></span>
+                <span className="avatar-eye left"></span>
+                <span className="avatar-eye right"></span>
+                <span className="avatar-smile"></span>
+              </div>
+              <div className="avatar-torso">
+                <span className="avatar-jacket"></span>
+              </div>
+              <div className="avatar-legs"></div>
+            </div>
+          )}
         </div>
       </div>
       <div className="avatar-profile">
@@ -412,6 +515,7 @@ function App() {
   if (!token || !currentUser) {
     return (
       <div className="app-container">
+        <input ref={avatarInputRef} className="avatar-file-input" type="file" accept="image/*" onChange={handleAvatarUpload} />
         <div className="xbox-shell public-xbox-shell public-nxe-shell">
           <main className="blade-dashboard nxe-dashboard">
             <aside className="blade-rail left-blades" aria-label="Left blades">
@@ -450,9 +554,10 @@ function App() {
                   {publicDashboardCards.map((card, index) => {
                     const offset = (index - activeDashboardCard + publicDashboardCards.length) % publicDashboardCards.length;
                     return (
-                      <button
-                        type="button"
-                        className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''}`}
+                      <div
+                        role="button"
+                        tabIndex={0}
+                        className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''}`}
                         style={{
                           '--card-offset': offset,
                           '--card-depth': offset,
@@ -460,10 +565,16 @@ function App() {
                         } as React.CSSProperties}
                         key={card.label}
                         onClick={() => index === activeDashboardCard ? card.action() : setActiveDashboardCard(index)}
+                        onKeyDown={(event) => {
+                          if (event.key !== 'Enter' && event.key !== ' ') return;
+                          event.preventDefault();
+                          index === activeDashboardCard ? card.action() : setActiveDashboardCard(index);
+                        }}
                       >
                         <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
                         <strong>{card.label}</strong>
-                      </button>
+                        {card.label === 'Avatar' && index === activeDashboardCard && renderAvatarControls()}
+                      </div>
                     );
                   })}
                 </div>
@@ -488,6 +599,7 @@ function App() {
 
   return (
     <div className="app-container" onClick={closeContextMenu}>
+      <input ref={avatarInputRef} className="avatar-file-input" type="file" accept="image/*" onChange={handleAvatarUpload} />
       <div className="titlebar">
         <div className="titlebar-drag-region"></div>
         <div className="titlebar-title">KeyStone Desktop</div>
@@ -558,9 +670,10 @@ function App() {
                       {dashboardCards.map((card, index) => {
                         const offset = (index - activeDashboardCard + dashboardCards.length) % dashboardCards.length;
                         return (
-                          <button
-                            type="button"
-                            className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''}`}
+                          <div
+                            role="button"
+                            tabIndex={0}
+                            className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''}`}
                             style={{
                               '--card-offset': offset,
                               '--card-depth': offset,
@@ -568,10 +681,16 @@ function App() {
                             } as React.CSSProperties}
                             key={card.label}
                             onClick={() => index === activeDashboardCard ? card.action() : setActiveDashboardCard(index)}
+                            onKeyDown={(event) => {
+                              if (event.key !== 'Enter' && event.key !== ' ') return;
+                              event.preventDefault();
+                              index === activeDashboardCard ? card.action() : setActiveDashboardCard(index);
+                            }}
                           >
                             <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
                             <strong>{card.label}</strong>
-                          </button>
+                            {card.label === 'Avatar' && index === activeDashboardCard && renderAvatarControls()}
+                          </div>
                         );
                       })}
                     </div>

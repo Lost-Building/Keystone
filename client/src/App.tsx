@@ -85,12 +85,14 @@ function App() {
   }, [token]);
 
   useEffect(() => {
+    if (!currentUser) return;
+
     if (activeTab === 'library') {
       fetchLibrary();
     } else if (activeTab === 'marketplace') {
       fetchMarketplace();
     }
-  }, [activeTab]);
+  }, [activeTab, currentUser]);
 
   const fetchLibrary = async () => {
     try {
@@ -215,6 +217,7 @@ function App() {
       localStorage.setItem('authToken', data.token);
       setToken(data.token);
       setCurrentUser(data.user);
+      setActiveTab('library');
     } catch {
       setAuthError('Could not reach KeyStone backend');
     }

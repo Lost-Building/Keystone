@@ -1029,10 +1029,10 @@ h1 {
 }
 
 .nxe-menu-only-scene .nxe-avatar-stand {
-  left: clamp(372px, 40vw, 458px);
-  top: clamp(124px, 21vh, 164px);
+  left: clamp(620px, 64vw, 740px);
+  top: clamp(410px, 50vh, 470px);
   z-index: 30;
-  width: 175px;
+  width: 190px;
 }
 
 .nxe-menu-only-scene .nxe-avatar-stand .avatar-stage {
@@ -1044,9 +1044,11 @@ h1 {
 }
 
 .nxe-menu-only-scene .nxe-avatar-stand .avatar-shadow {
-  bottom: 25px;
-  width: 174px;
-  height: 24px;
+  bottom: 18px;
+  width: 190px;
+  height: 26px;
+  background: rgba(31, 43, 28, 0.36);
+  filter: blur(2px);
 }
 
 .nxe-menu-only-scene .nxe-hints {

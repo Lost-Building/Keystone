@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './App.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-const IS_PUBLIC_DEMO = window.location.hostname.endsWith('github.io');
+const IS_PUBLIC_DEMO = window.location.hostname.endsWith('github.io') || new URLSearchParams(window.location.search).has('demo');
 const DEMO_TOKEN = 'keystone-public-demo-token';
 
 const demoUser: CurrentUser = {
@@ -106,8 +106,8 @@ function App() {
   const [sellModal, setSellModal] = useState<LibraryItem | null>(null);
   const [sellPrice, setSellPrice] = useState<string>('');
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
-  const [token, setToken] = useState(() => localStorage.getItem('authToken') || '');
-  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [token, setToken] = useState(() => IS_PUBLIC_DEMO ? DEMO_TOKEN : (localStorage.getItem('authToken') || ''));
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(() => IS_PUBLIC_DEMO ? demoUser : null);
   const [authError, setAuthError] = useState('');
 
   const apiFetch = async (path: string, options: RequestInit = {}) => {
@@ -363,6 +363,25 @@ function App() {
     setActiveDashboardCard((current) => (current + direction + cardCount) % cardCount);
   };
 
+  const dashboardCardCount = currentUser ? dashboardCards.length : publicDashboardCards.length;
+
+  useEffect(() => {
+    const handleDashboardKeys = (event: KeyboardEvent) => {
+      if (event.key === 'ArrowLeft') {
+        setActiveDashboardCard((current) => (current - 1 + dashboardCardCount) % dashboardCardCount);
+      } else if (event.key === 'ArrowRight') {
+        setActiveDashboardCard((current) => (current + 1) % dashboardCardCount);
+      } else {
+        return;
+      }
+
+      event.preventDefault();
+    };
+
+    window.addEventListener('keydown', handleDashboardKeys);
+    return () => window.removeEventListener('keydown', handleDashboardKeys);
+  }, [dashboardCardCount]);
+
   const dashboardAvatar = (
     <div className="avatar-card dashboard-avatar-card">
       <div className="avatar-stage">
@@ -430,12 +449,15 @@ function App() {
                 <div className="nxe-card-stack" aria-label="Dashboard menu">
                   {publicDashboardCards.map((card, index) => {
                     const offset = (index - activeDashboardCard + publicDashboardCards.length) % publicDashboardCards.length;
-                    const normalizedOffset = offset > publicDashboardCards.length / 2 ? offset - publicDashboardCards.length : offset;
                     return (
                       <button
                         type="button"
                         className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''}`}
-                        style={{ '--card-offset': normalizedOffset } as React.CSSProperties}
+                        style={{
+                          '--card-offset': offset,
+                          '--card-depth': offset,
+                          zIndex: 20 - offset
+                        } as React.CSSProperties}
                         key={card.label}
                         onClick={() => index === activeDashboardCard ? card.action() : setActiveDashboardCard(index)}
                       >
@@ -528,6 +550,27 @@ function App() {
                     <strong>KeyStone LIVE</strong>
                   </div>
                   <section className="nxe-scene">
+                    <div className="nxe-breadcrumbs">
+                      <span>Video &amp; Music Marketplace</span>
+                      <strong>Game Marketplace</strong>
+                      <b>Store</b>
+                    </div>
+
+                    <div className="nxe-player-summary">
+                      <strong>{currentUser.username}</strong>
+                      <span>1280 G</span>
+                      <i aria-hidden="true"></i>
+                    </div>
+
+                    <button className="nxe-feature-tile" type="button" onClick={() => setActiveDashboardCard(0)}>
+                      <img src="/Keystone/space_explorer.jpg" alt="Space Explorer featured game" />
+                      <span>
+                        <strong>Game Marketplace</strong>
+                        <small>Browse games and new releases</small>
+                      </span>
+                      <b>1 of 8</b>
+                    </button>
+
                     <div className="nxe-profile-card">
                       <div>
                         <strong>{currentUser.username}</strong>
@@ -548,12 +591,15 @@ function App() {
                     <div className="nxe-card-stack" aria-label="Dashboard menu">
                       {dashboardCards.map((card, index) => {
                         const offset = (index - activeDashboardCard + dashboardCards.length) % dashboardCards.length;
-                        const normalizedOffset = offset > dashboardCards.length / 2 ? offset - dashboardCards.length : offset;
                         return (
                           <button
                             type="button"
                             className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''}`}
-                            style={{ '--card-offset': normalizedOffset } as React.CSSProperties}
+                            style={{
+                              '--card-offset': offset,
+                              '--card-depth': offset,
+                              zIndex: 20 - offset
+                            } as React.CSSProperties}
                             key={card.label}
                             onClick={() => index === activeDashboardCard ? card.action() : setActiveDashboardCard(index)}
                           >
@@ -565,9 +611,9 @@ function App() {
                     </div>
 
                     <div className="nxe-hints">
-                      <span>A Select</span>
-                      <button type="button" onClick={() => moveDashboardCard(-1, dashboardCards.length)}>&lt; Previous</button>
-                      <button type="button" onClick={() => moveDashboardCard(1, dashboardCards.length)}>Next &gt;</button>
+                      <span><b>A</b> Select</span>
+                      <button type="button" aria-label="Previous dashboard card" onClick={() => moveDashboardCard(-1, dashboardCards.length)}>&#9664;</button>
+                      <button type="button" aria-label="Next dashboard card" onClick={() => moveDashboardCard(1, dashboardCards.length)}>&#9654;</button>
                     </div>
                   </section>
                 </section>

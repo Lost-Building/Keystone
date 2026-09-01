@@ -458,6 +458,236 @@ h1 {
   opacity: 0.78;
 }
 
+.nxe-scene {
+  position: relative;
+  height: calc(100% - 48px);
+  min-height: 430px;
+  overflow: hidden;
+}
+
+.nxe-copy {
+  position: absolute;
+  left: 3.2rem;
+  top: 4rem;
+  z-index: 3;
+  color: rgba(255,255,255,0.9);
+  text-shadow: 0 2px 14px rgba(41, 74, 29, 0.36);
+}
+
+.nxe-copy span,
+.nxe-copy strong {
+  display: block;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.nxe-copy h2 {
+  color: #fff;
+  font-size: clamp(2rem, 3.4vw, 3.5rem);
+  line-height: 1;
+  margin: 0.15rem 0 0;
+}
+
+.nxe-feature-card {
+  position: absolute;
+  left: 3.2rem;
+  top: 9rem;
+  z-index: 4;
+  width: clamp(260px, 30vw, 390px);
+  aspect-ratio: 1.35;
+  overflow: hidden;
+  padding: 0;
+  border: 3px solid rgba(255,255,255,0.74);
+  border-radius: 3px;
+  background: #111;
+  box-shadow: 0 18px 36px rgba(31, 49, 38, 0.36);
+}
+
+.nxe-feature-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.75) contrast(1.02);
+}
+
+.nxe-feature-card::after {
+  content: "";
+  position: absolute;
+  inset: 55% 0 0;
+  background: linear-gradient(180deg, transparent, rgba(0,0,0,0.72));
+}
+
+.nxe-feature-card span,
+.nxe-feature-card b {
+  position: absolute;
+  z-index: 2;
+  left: 1rem;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.85);
+}
+
+.nxe-feature-card span {
+  bottom: 1.45rem;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.nxe-feature-card b {
+  bottom: 0.45rem;
+  color: #d8ded8;
+  font-size: 0.8rem;
+}
+
+.nxe-profile-card {
+  position: absolute;
+  left: clamp(390px, 41vw, 610px);
+  top: 10.6rem;
+  z-index: 2;
+  width: 300px;
+  height: 152px;
+  padding: 1rem 1.1rem;
+  border-radius: 3px;
+  color: #f8fff3;
+  background: linear-gradient(90deg, #dbff35 0%, #98d719 58%, #73b40f 100%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.68), 0 14px 32px rgba(70, 103, 26, 0.35);
+}
+
+.nxe-profile-card strong,
+.nxe-profile-card span,
+.nxe-profile-card em {
+  display: block;
+  font-style: normal;
+  text-shadow: 0 1px 8px rgba(50, 86, 20, 0.42);
+}
+
+.nxe-rating-row {
+  display: flex;
+  gap: 0.25rem;
+  margin: 1.2rem 0 0.65rem;
+}
+
+.nxe-rating-row small {
+  color: #fff;
+  padding: 0.18rem 0.35rem;
+  background: rgba(0,0,0,0.48);
+  border-radius: 2px;
+  font-weight: 900;
+}
+
+.nxe-avatar-stand {
+  position: absolute;
+  left: clamp(470px, 49vw, 690px);
+  top: 7.2rem;
+  z-index: 5;
+  width: 190px;
+  pointer-events: none;
+}
+
+.nxe-avatar-stand .avatar-card {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.nxe-avatar-stand .avatar-stage {
+  min-height: 300px;
+  background: transparent;
+}
+
+.nxe-avatar-stand .avatar-profile {
+  display: none;
+}
+
+.nxe-card-stack {
+  position: absolute;
+  left: clamp(620px, 62vw, 860px);
+  top: 10.8rem;
+  height: 150px;
+  z-index: 1;
+}
+
+.nxe-menu-card {
+  position: absolute;
+  top: 0;
+  width: 230px;
+  height: 142px;
+  display: grid;
+  place-items: center;
+  gap: 0.25rem;
+  padding: 1rem;
+  color: #5c8611;
+  border: 1px solid rgba(255,255,255,0.6);
+  border-radius: 4px;
+  background: linear-gradient(90deg, #ccfb3a, #82c61a);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.72), 0 13px 28px rgba(73, 103, 33, 0.24);
+}
+
+.nxe-menu-card:nth-child(1) {
+  left: 0;
+  z-index: 4;
+}
+
+.nxe-menu-card:nth-child(2) {
+  left: 132px;
+  z-index: 3;
+  transform: scale(0.93);
+  opacity: 0.9;
+}
+
+.nxe-menu-card:nth-child(3) {
+  left: 242px;
+  z-index: 2;
+  transform: scale(0.86);
+  opacity: 0.82;
+}
+
+.nxe-menu-card:nth-child(4) {
+  left: 330px;
+  z-index: 1;
+  transform: scale(0.8);
+  opacity: 0.72;
+}
+
+.nxe-menu-card strong {
+  color: rgba(255,255,255,0.9);
+  font-size: 1rem;
+  text-shadow: 0 1px 7px rgba(54, 99, 12, 0.45);
+}
+
+.nxe-controller {
+  width: 82px;
+  height: 44px;
+  border-radius: 28px 28px 18px 18px;
+  background: radial-gradient(circle at 30% 45%, #fff 0 5px, transparent 6px), radial-gradient(circle at 70% 45%, #fff 0 5px, transparent 6px), rgba(255,255,255,0.74);
+  box-shadow: inset 0 -5px 0 rgba(0,0,0,0.1);
+}
+
+.nxe-controller.disc,
+.nxe-controller.avatar-dot,
+.nxe-controller.deal-dot {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+}
+
+.nxe-hints {
+  position: absolute;
+  left: 3.2rem;
+  bottom: 1.05rem;
+  z-index: 6;
+  display: flex;
+  gap: 1.15rem;
+  color: rgba(255,255,255,0.86);
+  font-size: 0.86rem;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.28);
+}
+
+.nxe-hints span::first-letter {
+  color: #8bd31b;
+  font-weight: 900;
+}
+
 .blade-titlebar {
   display: flex;
   justify-content: space-between;

@@ -101,9 +101,6 @@ function App() {
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [marketplace, setMarketplace] = useState<MarketplaceListing[]>([]);
   
-  const [searchQuery] = useState('');
-  const [sortOrder] = useState<'asc' | 'desc' | 'newest'>('newest');
-
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, item: LibraryItem | null } | null>(null);
   const [sellModal, setSellModal] = useState<LibraryItem | null>(null);
   const [sellPrice, setSellPrice] = useState<string>('');
@@ -542,81 +539,60 @@ function App() {
                     <span>{currentUser.username}</span>
                     <strong>KeyStone LIVE</strong>
                   </div>
-                  <section className="dashboard-grid horizontal-dashboard">
-                    <button type="button" className="dashboard-panel spotlight-panel" onClick={() => alert('Store home selected.')}>
-                      <span className="tile-label">Spotlight</span>
-                      <h2>Games, avatar gear, and player-owned keys</h2>
-                      <p>A console dashboard built around buying, collecting, trading, and showing off who you are.</p>
-                    </button>
+                  <section className="nxe-scene">
+                    <div className="nxe-copy">
+                      <span>Video &amp; Music Marketplace</span>
+                      <strong>Game Marketplace</strong>
+                      <h2>My KeyStone</h2>
+                    </div>
 
-                    <button type="button" className="dashboard-panel game-feature-tile" onClick={() => handleBuy(demoMarketplace[0])}>
+                    <button type="button" className="nxe-feature-card" onClick={() => handleBuy(demoMarketplace[0])}>
                       <img src="/Keystone/epic_quest.jpg" alt="Epic Quest" />
-                      <span>Epic Quest</span>
-                      <b>$12.99</b>
+                      <span>Play Epic Quest</span>
+                      <b>1 of {marketplace.length || 3}</b>
                     </button>
 
-                    <div className="dashboard-panel avatar-panel">
+                    <div className="nxe-profile-card">
+                      <div>
+                        <strong>{currentUser.username}</strong>
+                        <span>1280 G</span>
+                      </div>
+                      <div className="nxe-rating-row">
+                        <small>RPG</small>
+                        <small>Action</small>
+                        <small>Indie</small>
+                      </div>
+                      <em>Connected</em>
+                    </div>
+
+                    <div className="nxe-avatar-stand">
                       {dashboardAvatar}
                     </div>
 
-                    <button type="button" className="nxe-card library-card" onClick={() => setActiveTab('library')}>
-                      <span className="nxe-icon">▣</span>
-                      <strong>Game Library</strong>
-                    </button>
+                    <div className="nxe-card-stack" aria-label="Dashboard menu">
+                      <button type="button" className="nxe-menu-card active" onClick={() => alert('Store home selected.')}>
+                        <span className="nxe-controller"></span>
+                        <strong>Store</strong>
+                      </button>
+                      <button type="button" className="nxe-menu-card" onClick={() => setActiveTab('library')}>
+                        <span className="nxe-controller disc"></span>
+                        <strong>Library</strong>
+                      </button>
+                      <button type="button" className="nxe-menu-card" onClick={() => alert('Avatar customization shop coming soon.')}>
+                        <span className="nxe-controller avatar-dot"></span>
+                        <strong>Avatar</strong>
+                      </button>
+                      <button type="button" className="nxe-menu-card" onClick={() => alert('Deals refresh daily in the Store.')}>
+                        <span className="nxe-controller deal-dot"></span>
+                        <strong>Deals</strong>
+                      </button>
+                    </div>
 
-                    <button type="button" className="nxe-card store-card active-stack" onClick={() => alert('Store home selected.')}>
-                      <span className="nxe-icon">◎</span>
-                      <strong>Store</strong>
-                    </button>
-
-                    <button type="button" className="nxe-card avatar-card-tile" onClick={() => alert('Avatar customization shop coming soon.')}>
-                      <span className="nxe-icon">◉</span>
-                      <strong>Avatar</strong>
-                    </button>
-
-                    <button type="button" className="dashboard-panel blade-tile green-tile" onClick={() => alert('Avatar customization shop coming soon.')}>
-                      <span className="tile-label">Avatar Editor</span>
-                      <strong>Customize your player</strong>
-                    </button>
-
-                    <button type="button" className="dashboard-panel blade-tile gold-tile" onClick={() => alert('Deals refresh daily in the Store.')}>
-                      <span className="tile-label">Deals</span>
-                      <strong>Daily Arcade Drops</strong>
-                    </button>
-
-                    <section className="dashboard-panel wide-strip">
-                      {avatarDropTiles.map(([name, type, price]) => (
-                        <button type="button" className="avatar-item dashboard-mini-tile" key={name} onClick={() => alert(`${name} preview coming soon.`)}>
-                          <span className="item-swatch"></span>
-                          <span>
-                            <strong>{name}</strong>
-                            <small>{type}</small>
-                          </span>
-                          <b>{price}</b>
-                        </button>
-                      ))}
-                    </section>
-
-                    {marketplace
-                      .filter(listing => listing.game.title.toLowerCase().includes(searchQuery.toLowerCase()))
-                      .sort((a, b) => {
-                        if (sortOrder === 'asc') return a.salePrice - b.salePrice;
-                        if (sortOrder === 'desc') return b.salePrice - a.salePrice;
-                        return 0;
-                      })
-                      .map((listing) => (
-                        <button type="button" key={listing.keyId} className="dashboard-panel store-game-tile" onClick={() => handleBuy(listing)}>
-                          {listing.game.image ? (
-                            <img src={listing.game.image} alt={listing.game.title} />
-                          ) : (
-                            <span className="game-tile-placeholder">{listing.game.genre || 'Game'}</span>
-                          )}
-                          <span className="tile-label">{listing.game.genre || 'Game Key'}</span>
-                          <strong>{listing.game.title}</strong>
-                          <small>{listing.game.developer}</small>
-                          <b>${listing.salePrice.toFixed(2)}</b>
-                        </button>
-                      ))}
+                    <div className="nxe-hints">
+                      <span>A Select</span>
+                      <span>X Details</span>
+                      <span>Y Game Marketplace</span>
+                    </div>
                   </section>
                 </section>
                 <aside className="blade-rail right-blades" aria-label="Right blades">

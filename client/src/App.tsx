@@ -557,13 +557,14 @@ function App() {
   };
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.currentTarget.files?.[0];
+    const input = event.currentTarget;
+    const file = input.files?.[0];
     if (!file) return;
 
     const isRigFile = /\.(glb|gltf)$/i.test(file.name);
     if (!isRigFile) {
       alert('Upload a .glb or .gltf file with the character rig and animations inside.');
-      event.currentTarget.value = '';
+      input.value = '';
       return;
     }
 
@@ -578,7 +579,7 @@ function App() {
     } catch {
       alert('Could not save that avatar rig in this browser.');
     } finally {
-      event.currentTarget.value = '';
+      input.value = '';
     }
   };
 

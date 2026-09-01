@@ -1,21 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import './App.css';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const IS_PUBLIC_DEMO = window.location.hostname.endsWith('github.io') || new URLSearchParams(window.location.search).has('demo');
 const DEMO_TOKEN = 'keystone-public-demo-token';
-const AVATAR_IMAGE_KEY = 'keystoneAvatarImage';
-const AVATAR_ANIMATION_KEY = 'keystoneAvatarAnimation';
-
-type AvatarAnimation = 'idle' | 'wave' | 'hop' | 'spin' | 'power';
-
-const avatarAnimations: { id: AvatarAnimation; label: string }[] = [
-  { id: 'idle', label: 'Idle' },
-  { id: 'wave', label: 'Wave' },
-  { id: 'hop', label: 'Hop' },
-  { id: 'spin', label: 'Spin' },
-  { id: 'power', label: 'Power' }
-];
+const AVATAR_MODEL_DB = 'keystone-avatar-rigs';
+const AVATAR_MODEL_STORE = 'rigs';
+const AVATAR_MODEL_RECORD = 'activeRig';
+const AVATAR_ANIMATION_INDEX_KEY = 'keystoneAvatarRigAnimationIndex';
+const MAX_AVATAR_ANIMATIONS = 5;
 
 const demoUser: CurrentUser = {
   id: 'user1',
@@ -108,16 +103,203 @@ interface CurrentUser {
   role: 'user' | 'developer' | 'admin';
 }
 
+interface AvatarRig {
+  fileName: string;
+  blob: Blob;
+}
+
+interface StoredAvatarRig extends AvatarRig {
+  id: string;
+}
+
+const openAvatarDb = () => new Promise<IDBDatabase>((resolve, reject) => {
+  const request = indexedDB.open(AVATAR_MODEL_DB, 1);
+
+  request.onupgradeneeded = () => {
+    request.result.createObjectStore(AVATAR_MODEL_STORE);
+  };
+
+  request.onsuccess = () => resolve(request.result);
+  request.onerror = () => reject(request.error);
+});
+
+const loadStoredAvatarRig = async () => {
+  if (!('indexedDB' in window)) return null;
+
+  const db = await openAvatarDb();
+
+  return new Promise<AvatarRig | null>((resolve, reject) => {
+    const request = db
+      .transaction(AVATAR_MODEL_STORE, 'readonly')
+      .objectStore(AVATAR_MODEL_STORE)
+      .get(AVATAR_MODEL_RECORD);
+
+    request.onsuccess = () => {
+      db.close();
+      const result = request.result as StoredAvatarRig | undefined;
+      resolve(result ? { fileName: result.fileName, blob: result.blob } : null);
+    };
+    request.onerror = () => {
+      db.close();
+      reject(request.error);
+    };
+  });
+};
+
+const saveStoredAvatarRig = async (rig: AvatarRig) => {
+  const db = await openAvatarDb();
+
+  return new Promise<void>((resolve, reject) => {
+    const request = db
+      .transaction(AVATAR_MODEL_STORE, 'readwrite')
+      .objectStore(AVATAR_MODEL_STORE)
+      .put({ ...rig, id: AVATAR_MODEL_RECORD }, AVATAR_MODEL_RECORD);
+
+    request.onsuccess = () => {
+      db.close();
+      resolve();
+    };
+    request.onerror = () => {
+      db.close();
+      reject(request.error);
+    };
+  });
+};
+
+function AvatarRigViewer({
+  modelUrl,
+  selectedClipIndex,
+  onClipNames,
+  onStatus
+}: {
+  modelUrl: string;
+  selectedClipIndex: number;
+  onClipNames: (clipNames: string[]) => void;
+  onStatus: (status: string) => void;
+}) {
+  const mountRef = useRef<HTMLDivElement>(null);
+  const mixerRef = useRef<THREE.AnimationMixer | null>(null);
+  const clipsRef = useRef<THREE.AnimationClip[]>([]);
+  const activeActionRef = useRef<THREE.AnimationAction | null>(null);
+  const selectedClipIndexRef = useRef(selectedClipIndex);
+
+  const playAvatarClip = (clipIndex: number) => {
+    const mixer = mixerRef.current;
+    const clips = clipsRef.current;
+    if (!mixer || clips.length === 0) return;
+
+    const clip = clips[Math.min(clipIndex, clips.length - 1)];
+    const nextAction = mixer.clipAction(clip);
+    nextAction.reset().fadeIn(0.18).play();
+    activeActionRef.current?.fadeOut(0.18);
+    activeActionRef.current = nextAction;
+  };
+
+  useEffect(() => {
+    selectedClipIndexRef.current = selectedClipIndex;
+    playAvatarClip(selectedClipIndex);
+  }, [selectedClipIndex]);
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return;
+
+    let disposed = false;
+    let frameId = 0;
+    const clock = new THREE.Clock();
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(30, 1, 0.1, 100);
+    camera.position.set(0, 1.55, 5.2);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setClearColor(0x000000, 0);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    mount.appendChild(renderer.domElement);
+
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.15);
+    keyLight.position.set(2.8, 4.2, 3.5);
+    scene.add(keyLight);
+    scene.add(new THREE.HemisphereLight(0xf7ffe4, 0x31410f, 1.65));
+
+    const resize = () => {
+      const width = Math.max(1, mount.clientWidth);
+      const height = Math.max(1, mount.clientHeight);
+      renderer.setSize(width, height, false);
+      camera.aspect = width / height;
+      camera.updateProjectionMatrix();
+    };
+
+    const resizeObserver = new ResizeObserver(resize);
+    resizeObserver.observe(mount);
+    resize();
+
+    onStatus('Loading rig...');
+    onClipNames([]);
+
+    new GLTFLoader().load(
+      modelUrl,
+      (gltf) => {
+        if (disposed) return;
+
+        const model = gltf.scene;
+        const box = new THREE.Box3().setFromObject(model);
+        const size = box.getSize(new THREE.Vector3());
+        const center = box.getCenter(new THREE.Vector3());
+        const maxDimension = Math.max(size.x, size.y, size.z) || 1;
+        model.position.set(-center.x, -box.min.y, -center.z);
+        model.scale.setScalar(2.45 / maxDimension);
+        scene.add(model);
+
+        const clips = gltf.animations.slice(0, MAX_AVATAR_ANIMATIONS);
+        clipsRef.current = clips;
+        onClipNames(clips.map((clip, index) => clip.name || `Animation ${index + 1}`));
+
+        if (clips.length > 0) {
+          mixerRef.current = new THREE.AnimationMixer(model);
+          playAvatarClip(selectedClipIndexRef.current);
+          onStatus(`${clips.length} animation${clips.length === 1 ? '' : 's'} ready`);
+        } else {
+          onStatus('No rig animations found');
+        }
+      },
+      undefined,
+      () => {
+        if (!disposed) onStatus('Could not load this rig');
+      }
+    );
+
+    const animate = () => {
+      mixerRef.current?.update(clock.getDelta());
+      renderer.render(scene, camera);
+      frameId = window.requestAnimationFrame(animate);
+    };
+    animate();
+
+    return () => {
+      disposed = true;
+      window.cancelAnimationFrame(frameId);
+      resizeObserver.disconnect();
+      mixerRef.current?.stopAllAction();
+      renderer.dispose();
+      renderer.domElement.remove();
+    };
+  }, [modelUrl, onClipNames, onStatus]);
+
+  return <div className="avatar-rig-viewer" ref={mountRef} />;
+}
+
 function App() {
   const [activeTab, setActiveTab] = useState<'library' | 'marketplace' | 'developer'>('marketplace');
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [, setMarketplace] = useState<MarketplaceListing[]>([]);
   const [activeDashboardCard, setActiveDashboardCard] = useState(0);
-  const [customAvatar, setCustomAvatar] = useState(() => localStorage.getItem(AVATAR_IMAGE_KEY) || '');
-  const [avatarAnimation, setAvatarAnimation] = useState<AvatarAnimation>(() => {
-    const savedAnimation = localStorage.getItem(AVATAR_ANIMATION_KEY);
-    const matchingAnimation = avatarAnimations.find((animation) => animation.id === savedAnimation);
-    return matchingAnimation?.id || 'idle';
+  const [avatarRig, setAvatarRig] = useState<AvatarRig | null>(null);
+  const [avatarRigUrl, setAvatarRigUrl] = useState('');
+  const [avatarClipNames, setAvatarClipNames] = useState<string[]>([]);
+  const [avatarRigStatus, setAvatarRigStatus] = useState('Upload a rigged .glb avatar');
+  const [avatarAnimationIndex, setAvatarAnimationIndex] = useState(() => {
+    const savedIndex = Number(localStorage.getItem(AVATAR_ANIMATION_INDEX_KEY));
+    return Number.isInteger(savedIndex) && savedIndex >= 0 ? savedIndex : 0;
   });
   const avatarInputRef = useRef<HTMLInputElement>(null);
   
@@ -327,81 +509,102 @@ function App() {
     setActiveTab('marketplace');
   };
 
+  useEffect(() => {
+    let isMounted = true;
+
+    loadStoredAvatarRig()
+      .then((storedRig) => {
+        if (!isMounted || !storedRig) return;
+        setAvatarRig(storedRig);
+        setAvatarRigStatus('Loading saved rig...');
+      })
+      .catch(() => {
+        if (isMounted) setAvatarRigStatus('Upload a rigged .glb avatar');
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!avatarRig) {
+      setAvatarRigUrl('');
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(avatarRig.blob);
+    setAvatarRigUrl(objectUrl);
+
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [avatarRig]);
+
+  useEffect(() => {
+    if (avatarClipNames.length === 0) return;
+
+    if (avatarAnimationIndex >= avatarClipNames.length) {
+      setAvatarAnimationIndex(0);
+      localStorage.setItem(AVATAR_ANIMATION_INDEX_KEY, '0');
+    }
+  }, [avatarAnimationIndex, avatarClipNames.length]);
+
   const openAvatarUpload = () => {
     avatarInputRef.current?.click();
   };
-
-  const resizeAvatarImage = (file: File) => new Promise<string>((resolve, reject) => {
-    const objectUrl = URL.createObjectURL(file);
-    const image = new Image();
-
-    image.onload = () => {
-      const maxSize = 520;
-      const scale = Math.min(1, maxSize / Math.max(image.width, image.height));
-      const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(image.width * scale));
-      canvas.height = Math.max(1, Math.round(image.height * scale));
-      const context = canvas.getContext('2d');
-
-      URL.revokeObjectURL(objectUrl);
-
-      if (!context) {
-        reject(new Error('Canvas unavailable'));
-        return;
-      }
-
-      context.clearRect(0, 0, canvas.width, canvas.height);
-      context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      resolve(canvas.toDataURL('image/png'));
-    };
-
-    image.onerror = () => {
-      URL.revokeObjectURL(objectUrl);
-      reject(new Error('Image could not be loaded'));
-    };
-
-    image.src = objectUrl;
-  });
 
   const handleAvatarUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.currentTarget.files?.[0];
     if (!file) return;
 
+    const isRigFile = /\.(glb|gltf)$/i.test(file.name);
+    if (!isRigFile) {
+      alert('Upload a .glb or .gltf file with the character rig and animations inside.');
+      event.currentTarget.value = '';
+      return;
+    }
+
     try {
-      const avatarData = await resizeAvatarImage(file);
-      localStorage.setItem(AVATAR_IMAGE_KEY, avatarData);
-      setCustomAvatar(avatarData);
-      setAvatarAnimation('idle');
-      localStorage.setItem(AVATAR_ANIMATION_KEY, 'idle');
+      const rig = { fileName: file.name, blob: file };
+      await saveStoredAvatarRig(rig);
+      setAvatarRig(rig);
+      setAvatarClipNames([]);
+      setAvatarAnimationIndex(0);
+      setAvatarRigStatus('Reading rig animations...');
+      localStorage.setItem(AVATAR_ANIMATION_INDEX_KEY, '0');
     } catch {
-      alert('Could not use that avatar image. Try a PNG or JPG.');
+      alert('Could not save that avatar rig in this browser.');
     } finally {
       event.currentTarget.value = '';
     }
   };
 
-  const selectAvatarAnimation = (animation: AvatarAnimation) => {
-    setAvatarAnimation(animation);
-    localStorage.setItem(AVATAR_ANIMATION_KEY, animation);
+  const selectAvatarAnimation = (animationIndex: number) => {
+    setAvatarAnimationIndex(animationIndex);
+    localStorage.setItem(AVATAR_ANIMATION_INDEX_KEY, String(animationIndex));
   };
 
   const renderAvatarControls = () => (
     <div className="avatar-card-controls" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
       <button type="button" className="avatar-upload-button" onClick={openAvatarUpload}>
-        Upload Avatar
+        Upload Rig
       </button>
-      <div className="avatar-animation-row" aria-label="Avatar animations">
-        {avatarAnimations.map((animation) => (
-          <button
-            type="button"
-            className={animation.id === avatarAnimation ? 'active' : ''}
-            key={animation.id}
-            onClick={() => selectAvatarAnimation(animation.id)}
-          >
-            {animation.label}
-          </button>
-        ))}
-      </div>
+      <span className="avatar-rig-status">{avatarRig?.fileName || avatarRigStatus}</span>
+      {avatarClipNames.length > 0 ? (
+        <div className="avatar-animation-row" aria-label="Avatar rig animations">
+          {avatarClipNames.slice(0, MAX_AVATAR_ANIMATIONS).map((animationName, animationIndex) => (
+            <button
+              type="button"
+              className={animationIndex === avatarAnimationIndex ? 'active' : ''}
+              key={`${animationName}-${animationIndex}`}
+              onClick={() => selectAvatarAnimation(animationIndex)}
+            >
+              {animationName}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <span className="avatar-rig-status muted">{avatarRigStatus}</span>
+      )}
     </div>
   );
 
@@ -483,9 +686,14 @@ function App() {
       <div className="avatar-card dashboard-avatar-card">
       <div className="avatar-stage">
         <div className="avatar-shadow"></div>
-        <div className={`avatar-actor avatar-motion-${avatarAnimation}`}>
-          {customAvatar ? (
-            <img className="uploaded-avatar-image" src={customAvatar} alt="Custom avatar" />
+        <div className="avatar-actor">
+          {avatarRigUrl ? (
+            <AvatarRigViewer
+              modelUrl={avatarRigUrl}
+              selectedClipIndex={avatarAnimationIndex}
+              onClipNames={setAvatarClipNames}
+              onStatus={setAvatarRigStatus}
+            />
           ) : (
             <div className="avatar-body">
               <div className="avatar-head">
@@ -515,7 +723,7 @@ function App() {
   if (!token || !currentUser) {
     return (
       <div className="app-container">
-        <input ref={avatarInputRef} className="avatar-file-input" type="file" accept="image/*" onChange={handleAvatarUpload} />
+        <input ref={avatarInputRef} className="avatar-file-input" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" onChange={handleAvatarUpload} />
         <div className="xbox-shell public-xbox-shell public-nxe-shell">
           <main className="blade-dashboard nxe-dashboard">
             <aside className="blade-rail left-blades" aria-label="Left blades">
@@ -599,7 +807,7 @@ function App() {
 
   return (
     <div className="app-container" onClick={closeContextMenu}>
-      <input ref={avatarInputRef} className="avatar-file-input" type="file" accept="image/*" onChange={handleAvatarUpload} />
+      <input ref={avatarInputRef} className="avatar-file-input" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" onChange={handleAvatarUpload} />
       <div className="titlebar">
         <div className="titlebar-drag-region"></div>
         <div className="titlebar-title">KeyStone Desktop</div>

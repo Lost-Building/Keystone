@@ -1029,14 +1029,28 @@ h1 {
 }
 
 .nxe-menu-only-scene .nxe-avatar-stand {
-  left: clamp(620px, 64vw, 740px);
-  top: clamp(330px, 50vh, 470px);
+  left: clamp(560px, 55vw, 660px);
+  top: clamp(230px, 37vh, 350px);
   z-index: 30;
-  width: 190px;
+  width: 360px;
 }
 
 .nxe-menu-only-scene .nxe-avatar-stand .avatar-stage {
-  min-height: 310px;
+  min-height: 430px;
+  overflow: visible;
+}
+
+.nxe-menu-only-scene .nxe-avatar-stand .avatar-rig-viewer {
+  width: 360px;
+  height: 420px;
+  margin-bottom: 0;
+  overflow: visible;
+  background: transparent;
+}
+
+.nxe-menu-only-scene .nxe-avatar-stand .avatar-rig-viewer canvas {
+  background: transparent;
+  filter: none;
 }
 
 .nxe-menu-only-scene .nxe-avatar-stand .avatar-body {
@@ -1045,8 +1059,8 @@ h1 {
 
 .nxe-menu-only-scene .nxe-avatar-stand .avatar-shadow {
   bottom: 18px;
-  width: 190px;
-  height: 26px;
+  width: 260px;
+  height: 30px;
   background: rgba(31, 43, 28, 0.36);
   filter: blur(2px);
 }

@@ -1080,7 +1080,7 @@ h1 {
 }
 
 .nxe-menu-only-scene .nxe-avatar-stand .avatar-shadow {
-  bottom: 18px;
+  bottom: -20px;
   width: 260px;
   height: 30px;
   background: rgba(31, 43, 28, 0.36);

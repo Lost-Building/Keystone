@@ -299,12 +299,6 @@ function App() {
     setMarketplace([]);
   };
 
-  const avatarDropTiles = [
-    ['Arcade Pilot Set', 'Featured outfit', '$4.99'],
-    ['Victory Spin', 'Emote', '$1.49'],
-    ['Neon Room Kit', 'Profile space', '$5.99']
-  ];
-
   const dashboardAvatar = (
     <div className="avatar-card dashboard-avatar-card">
       <div className="avatar-stage">
@@ -335,44 +329,22 @@ function App() {
   if (!token || !currentUser) {
     return (
       <div className="app-container">
-        <div className="xbox-shell public-xbox-shell">
-          <header className="xbox-header">
-            <div>
-              <span className="store-kicker">KeyStone Dashboard</span>
-              <h1>Store</h1>
-            </div>
-            <div className="dashboard-tabs compact-tabs" aria-label="Dashboard blades">
-              <span className="active">store</span>
-              <span>avatars</span>
-            </div>
-          </header>
-
-          <main className="blade-dashboard">
+        <div className="xbox-shell public-xbox-shell public-nxe-shell">
+          <main className="blade-dashboard nxe-dashboard">
             <aside className="blade-rail left-blades" aria-label="Left blades">
               <span>marketplace</span>
               <span className="active">store</span>
               <span>library</span>
             </aside>
             <section className="blade-stage">
-              <div className="blade-titlebar">
+              <div className="blade-titlebar nxe-titlebar">
                 <span>Sign In</span>
                 <strong>KeyStone LIVE</strong>
               </div>
-              <div className="dashboard-grid public-dashboard-grid horizontal-dashboard">
-                <section className="dashboard-panel spotlight-panel">
-                  <span className="tile-label">Featured</span>
-                  <h2>Build your library. Build your player.</h2>
-                  <p>Buy games, trade player-owned keys, and collect avatar gear that makes your KeyStone profile feel alive.</p>
-                  <button className="btn-primary" type="button" onClick={() => setAuthMode('register')}>Join KeyStone</button>
-                </section>
-
-                <section className="dashboard-panel avatar-panel">
-                  {dashboardAvatar}
-                </section>
-
-                <section className="dashboard-panel auth-tile">
-                  <form className="auth-panel dashboard-auth-panel" onSubmit={handleAuthSubmit}>
-                    <h1>KeyStone</h1>
+              <section className="nxe-scene public-nxe-scene">
+                <div className="nxe-profile-card public-signin-card">
+                  <form className="nxe-signin-form" onSubmit={handleAuthSubmit}>
+                    <strong>KeyStone Profile</strong>
                     <div className="auth-tabs">
                       <button type="button" className={authMode === 'login' ? 'active' : ''} onClick={() => setAuthMode('login')}>Login</button>
                       <button type="button" className={authMode === 'register' ? 'active' : ''} onClick={() => setAuthMode('register')}>Register</button>
@@ -383,24 +355,45 @@ function App() {
                     <input name="email" type={authMode === 'register' ? 'email' : 'text'} placeholder={authMode === 'register' ? 'Email' : 'Email or username'} required />
                     <input name="password" type="password" placeholder="Password" required minLength={12} autoComplete="current-password" />
                     {authError && <div className="auth-error">{authError}</div>}
-                    <button type="submit" className="btn-primary">{authMode === 'login' ? 'Login' : 'Create Account'}</button>
-                    <p className="auth-note">Public demo mode opens the dashboard instantly.</p>
+                    <button type="submit" className="btn-primary">{authMode === 'login' ? 'Sign In' : 'Create Profile'}</button>
                   </form>
-                </section>
+                </div>
 
-                <section className="dashboard-panel wide-strip">
-                  {avatarDropTiles.map(([name, type, price]) => (
-                    <div className="avatar-item dashboard-mini-tile" key={name}>
-                      <span className="item-swatch"></span>
-                      <span>
-                        <strong>{name}</strong>
-                        <small>{type}</small>
-                      </span>
-                      <b>{price}</b>
-                    </div>
-                  ))}
-                </section>
-              </div>
+                <div className="nxe-avatar-stand">
+                  {dashboardAvatar}
+                </div>
+
+                <div className="nxe-card-stack" aria-label="Dashboard menu">
+                  <button type="button" className="nxe-menu-card active" onClick={() => {
+                    localStorage.setItem('authToken', DEMO_TOKEN);
+                    setToken(DEMO_TOKEN);
+                    setCurrentUser(demoUser);
+                    setMarketplace(demoMarketplace);
+                    setActiveTab('marketplace');
+                  }}>
+                    <span className="nxe-controller"></span>
+                    <strong>Store</strong>
+                  </button>
+                  <button type="button" className="nxe-menu-card" onClick={() => setAuthMode('register')}>
+                    <span className="nxe-controller upload-dot"></span>
+                    <strong>Create Profile</strong>
+                  </button>
+                  <button type="button" className="nxe-menu-card" onClick={() => alert('Avatar customization shop coming soon.')}>
+                    <span className="nxe-controller avatar-dot"></span>
+                    <strong>Avatar</strong>
+                  </button>
+                  <button type="button" className="nxe-menu-card" onClick={() => alert('Deals refresh daily in the Store.')}>
+                    <span className="nxe-controller deal-dot"></span>
+                    <strong>Deals</strong>
+                  </button>
+                </div>
+
+                <div className="nxe-hints">
+                  <span>A Select</span>
+                  <span>X Details</span>
+                  <span>Y Game Marketplace</span>
+                </div>
+              </section>
             </section>
             <aside className="blade-rail right-blades" aria-label="Right blades">
               <span>games</span>

@@ -373,56 +373,72 @@ function App() {
               <span className="store-kicker">KeyStone Dashboard</span>
               <h1>Store</h1>
             </div>
-            <div className="dashboard-tabs" aria-label="Dashboard blades">
-              <span className="active">home</span>
-              <span>games</span>
+            <div className="dashboard-tabs compact-tabs" aria-label="Dashboard blades">
+              <span className="active">store</span>
               <span>avatars</span>
-              <span>media</span>
             </div>
           </header>
 
-          <main className="dashboard-grid public-dashboard-grid horizontal-dashboard">
-            <section className="dashboard-panel spotlight-panel">
-              <span className="tile-label">Featured</span>
-              <h2>Build your library. Build your player.</h2>
-              <p>Buy games, trade player-owned keys, and collect avatar gear that makes your KeyStone profile feel alive.</p>
-              <button className="btn-primary" type="button" onClick={() => setAuthMode('register')}>Join KeyStone</button>
-            </section>
+          <main className="blade-dashboard">
+            <aside className="blade-rail left-blades" aria-label="Left blades">
+              <span>marketplace</span>
+              <span className="active">store</span>
+              <span>library</span>
+            </aside>
+            <section className="blade-stage">
+              <div className="blade-titlebar">
+                <span>Sign In</span>
+                <strong>KeyStone LIVE</strong>
+              </div>
+              <div className="dashboard-grid public-dashboard-grid horizontal-dashboard">
+                <section className="dashboard-panel spotlight-panel">
+                  <span className="tile-label">Featured</span>
+                  <h2>Build your library. Build your player.</h2>
+                  <p>Buy games, trade player-owned keys, and collect avatar gear that makes your KeyStone profile feel alive.</p>
+                  <button className="btn-primary" type="button" onClick={() => setAuthMode('register')}>Join KeyStone</button>
+                </section>
 
-            <section className="dashboard-panel avatar-panel">
-              {dashboardAvatar}
-            </section>
+                <section className="dashboard-panel avatar-panel">
+                  {dashboardAvatar}
+                </section>
 
-            <section className="dashboard-panel auth-tile">
-              <form className="auth-panel dashboard-auth-panel" onSubmit={handleAuthSubmit}>
-                <h1>KeyStone</h1>
-                <div className="auth-tabs">
-                  <button type="button" className={authMode === 'login' ? 'active' : ''} onClick={() => setAuthMode('login')}>Login</button>
-                  <button type="button" className={authMode === 'register' ? 'active' : ''} onClick={() => setAuthMode('register')}>Register</button>
-                </div>
-                {authMode === 'register' && (
-                  <input name="username" placeholder="Username" required maxLength={32} />
-                )}
-                <input name="email" type={authMode === 'register' ? 'email' : 'text'} placeholder={authMode === 'register' ? 'Email' : 'Email or username'} required />
-                <input name="password" type="password" placeholder="Password" required minLength={12} autoComplete="current-password" />
-                {authError && <div className="auth-error">{authError}</div>}
-                <button type="submit" className="btn-primary">{authMode === 'login' ? 'Login' : 'Create Account'}</button>
-                <p className="auth-note">Public demo mode opens the dashboard instantly.</p>
-              </form>
-            </section>
+                <section className="dashboard-panel auth-tile">
+                  <form className="auth-panel dashboard-auth-panel" onSubmit={handleAuthSubmit}>
+                    <h1>KeyStone</h1>
+                    <div className="auth-tabs">
+                      <button type="button" className={authMode === 'login' ? 'active' : ''} onClick={() => setAuthMode('login')}>Login</button>
+                      <button type="button" className={authMode === 'register' ? 'active' : ''} onClick={() => setAuthMode('register')}>Register</button>
+                    </div>
+                    {authMode === 'register' && (
+                      <input name="username" placeholder="Username" required maxLength={32} />
+                    )}
+                    <input name="email" type={authMode === 'register' ? 'email' : 'text'} placeholder={authMode === 'register' ? 'Email' : 'Email or username'} required />
+                    <input name="password" type="password" placeholder="Password" required minLength={12} autoComplete="current-password" />
+                    {authError && <div className="auth-error">{authError}</div>}
+                    <button type="submit" className="btn-primary">{authMode === 'login' ? 'Login' : 'Create Account'}</button>
+                    <p className="auth-note">Public demo mode opens the dashboard instantly.</p>
+                  </form>
+                </section>
 
-            <section className="dashboard-panel wide-strip">
-              {avatarDropTiles.map(([name, type, price]) => (
-                <div className="avatar-item dashboard-mini-tile" key={name}>
-                  <span className="item-swatch"></span>
-                  <span>
-                    <strong>{name}</strong>
-                    <small>{type}</small>
-                  </span>
-                  <b>{price}</b>
-                </div>
-              ))}
+                <section className="dashboard-panel wide-strip">
+                  {avatarDropTiles.map(([name, type, price]) => (
+                    <div className="avatar-item dashboard-mini-tile" key={name}>
+                      <span className="item-swatch"></span>
+                      <span>
+                        <strong>{name}</strong>
+                        <small>{type}</small>
+                      </span>
+                      <b>{price}</b>
+                    </div>
+                  ))}
+                </section>
+              </div>
             </section>
+            <aside className="blade-rail right-blades" aria-label="Right blades">
+              <span>games</span>
+              <span>avatars</span>
+              <span>system</span>
+            </aside>
           </main>
         </div>
       </div>
@@ -509,75 +525,106 @@ function App() {
                   <span className="store-kicker">KeyStone Dashboard</span>
                   <h1>Store</h1>
                 </div>
-                <div className="dashboard-tabs" aria-label="Dashboard blades">
-                  <span className="active">home</span>
-                  <span>games</span>
+                <div className="dashboard-tabs compact-tabs" aria-label="Dashboard blades">
+                  <span className="active">store</span>
                   <span>avatars</span>
-                  <span>deals</span>
                 </div>
               </header>
 
-              <section className="dashboard-grid horizontal-dashboard">
-                <button type="button" className="dashboard-panel spotlight-panel" onClick={() => alert('Store home selected.')}>
-                  <span className="tile-label">Spotlight</span>
-                  <h2>Games, avatar gear, and player-owned keys</h2>
-                  <p>A console dashboard built around buying, collecting, trading, and showing off who you are.</p>
-                </button>
-
-                <button type="button" className="dashboard-panel game-feature-tile" onClick={() => handleBuy(demoMarketplace[0])}>
-                  <img src="/Keystone/epic_quest.jpg" alt="Epic Quest" />
-                  <span>Epic Quest</span>
-                  <b>$12.99</b>
-                </button>
-
-                <div className="dashboard-panel avatar-panel">
-                  {dashboardAvatar}
-                </div>
-
-                <button type="button" className="dashboard-panel blade-tile green-tile" onClick={() => alert('Avatar customization shop coming soon.')}>
-                  <span className="tile-label">Avatar Editor</span>
-                  <strong>Customize your player</strong>
-                </button>
-
-                <button type="button" className="dashboard-panel blade-tile gold-tile" onClick={() => alert('Deals refresh daily in the Store.')}>
-                  <span className="tile-label">Deals</span>
-                  <strong>Daily Arcade Drops</strong>
-                </button>
-
-                <section className="dashboard-panel wide-strip">
-                  {avatarDropTiles.map(([name, type, price]) => (
-                    <button type="button" className="avatar-item dashboard-mini-tile" key={name} onClick={() => alert(`${name} preview coming soon.`)}>
-                      <span className="item-swatch"></span>
-                      <span>
-                        <strong>{name}</strong>
-                        <small>{type}</small>
-                      </span>
-                      <b>{price}</b>
+              <main className="blade-dashboard nxe-dashboard">
+                <aside className="blade-rail left-blades" aria-label="Left blades">
+                  <span>marketplace</span>
+                  <span className="active">store</span>
+                  <span>library</span>
+                </aside>
+                <section className="blade-stage">
+                  <div className="blade-titlebar nxe-titlebar">
+                    <span>{currentUser.username}</span>
+                    <strong>KeyStone LIVE</strong>
+                  </div>
+                  <section className="dashboard-grid horizontal-dashboard">
+                    <button type="button" className="dashboard-panel spotlight-panel" onClick={() => alert('Store home selected.')}>
+                      <span className="tile-label">Spotlight</span>
+                      <h2>Games, avatar gear, and player-owned keys</h2>
+                      <p>A console dashboard built around buying, collecting, trading, and showing off who you are.</p>
                     </button>
-                  ))}
+
+                    <button type="button" className="dashboard-panel game-feature-tile" onClick={() => handleBuy(demoMarketplace[0])}>
+                      <img src="/Keystone/epic_quest.jpg" alt="Epic Quest" />
+                      <span>Epic Quest</span>
+                      <b>$12.99</b>
+                    </button>
+
+                    <div className="dashboard-panel avatar-panel">
+                      {dashboardAvatar}
+                    </div>
+
+                    <button type="button" className="nxe-card library-card" onClick={() => setActiveTab('library')}>
+                      <span className="nxe-icon">▣</span>
+                      <strong>Game Library</strong>
+                    </button>
+
+                    <button type="button" className="nxe-card store-card active-stack" onClick={() => alert('Store home selected.')}>
+                      <span className="nxe-icon">◎</span>
+                      <strong>Store</strong>
+                    </button>
+
+                    <button type="button" className="nxe-card avatar-card-tile" onClick={() => alert('Avatar customization shop coming soon.')}>
+                      <span className="nxe-icon">◉</span>
+                      <strong>Avatar</strong>
+                    </button>
+
+                    <button type="button" className="dashboard-panel blade-tile green-tile" onClick={() => alert('Avatar customization shop coming soon.')}>
+                      <span className="tile-label">Avatar Editor</span>
+                      <strong>Customize your player</strong>
+                    </button>
+
+                    <button type="button" className="dashboard-panel blade-tile gold-tile" onClick={() => alert('Deals refresh daily in the Store.')}>
+                      <span className="tile-label">Deals</span>
+                      <strong>Daily Arcade Drops</strong>
+                    </button>
+
+                    <section className="dashboard-panel wide-strip">
+                      {avatarDropTiles.map(([name, type, price]) => (
+                        <button type="button" className="avatar-item dashboard-mini-tile" key={name} onClick={() => alert(`${name} preview coming soon.`)}>
+                          <span className="item-swatch"></span>
+                          <span>
+                            <strong>{name}</strong>
+                            <small>{type}</small>
+                          </span>
+                          <b>{price}</b>
+                        </button>
+                      ))}
+                    </section>
+
+                    {marketplace
+                      .filter(listing => listing.game.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                      .sort((a, b) => {
+                        if (sortOrder === 'asc') return a.salePrice - b.salePrice;
+                        if (sortOrder === 'desc') return b.salePrice - a.salePrice;
+                        return 0;
+                      })
+                      .map((listing) => (
+                        <button type="button" key={listing.keyId} className="dashboard-panel store-game-tile" onClick={() => handleBuy(listing)}>
+                          {listing.game.image ? (
+                            <img src={listing.game.image} alt={listing.game.title} />
+                          ) : (
+                            <span className="game-tile-placeholder">{listing.game.genre || 'Game'}</span>
+                          )}
+                          <span className="tile-label">{listing.game.genre || 'Game Key'}</span>
+                          <strong>{listing.game.title}</strong>
+                          <small>{listing.game.developer}</small>
+                          <b>${listing.salePrice.toFixed(2)}</b>
+                        </button>
+                      ))}
+                  </section>
                 </section>
-
-                {marketplace
-                  .filter(listing => listing.game.title.toLowerCase().includes(searchQuery.toLowerCase()))
-                  .sort((a, b) => {
-                    if (sortOrder === 'asc') return a.salePrice - b.salePrice;
-                    if (sortOrder === 'desc') return b.salePrice - a.salePrice;
-                    return 0;
-                  })
-                  .map((listing) => (
-                    <button type="button" key={listing.keyId} className="dashboard-panel store-game-tile" onClick={() => handleBuy(listing)}>
-                      {listing.game.image ? (
-                        <img src={listing.game.image} alt={listing.game.title} />
-                      ) : (
-                        <span className="game-tile-placeholder">{listing.game.genre || 'Game'}</span>
-                      )}
-                      <span className="tile-label">{listing.game.genre || 'Game Key'}</span>
-                      <strong>{listing.game.title}</strong>
-                      <small>{listing.game.developer}</small>
-                      <b>${listing.salePrice.toFixed(2)}</b>
-                    </button>
-                  ))}
-              </section>
+                <aside className="blade-rail right-blades" aria-label="Right blades">
+                  <span>games</span>
+                  <span>avatars</span>
+                  <span>system</span>
+                </aside>
+              </main>
             </div>
           </div>
         )}

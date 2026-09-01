@@ -203,12 +203,15 @@ app.post('/api/auth/register', async (req, res) => {
 });
 
 app.post('/api/auth/login', async (req, res) => {
-  const email = cleanText(req.body.email, 254)?.toLowerCase();
+  const identifier = cleanText(req.body.identifier || req.body.email, 254);
+  const normalizedIdentifier = identifier?.toLowerCase();
   const password = typeof req.body.password === 'string' ? req.body.password : '';
-  const user = email ? await db.prepare('SELECT * FROM users WHERE email = ?').get(email) : null;
+  const user = normalizedIdentifier
+    ? await db.prepare('SELECT * FROM users WHERE lower(email) = ? OR lower(username) = ?').get(normalizedIdentifier, normalizedIdentifier)
+    : null;
 
   if (!user || !(await bcrypt.compare(password, user.password_hash))) {
-    return res.status(401).json({ error: 'Invalid email or password' });
+    return res.status(401).json({ error: 'Invalid email, username, or password' });
   }
 
   req.user = user;

@@ -197,7 +197,7 @@ function App() {
           password: formData.get('password')
         }
       : {
-          email: formData.get('email'),
+          identifier: formData.get('email'),
           password: formData.get('password')
         };
 
@@ -244,7 +244,7 @@ function App() {
             {authMode === 'register' && (
               <input name="username" placeholder="Username" required maxLength={32} />
             )}
-            <input name="email" type="email" placeholder="Email" required />
+            <input name="email" type={authMode === 'register' ? 'email' : 'text'} placeholder={authMode === 'register' ? 'Email' : 'Email or username'} required />
             <input name="password" type="password" placeholder="Password" required minLength={12} autoComplete="current-password" />
             {authError && <div className="auth-error">{authError}</div>}
             <button type="submit" className="btn-primary">{authMode === 'login' ? 'Login' : 'Create Account'}</button>

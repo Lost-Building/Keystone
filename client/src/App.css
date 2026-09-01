@@ -1029,20 +1029,21 @@ h1 {
 }
 
 .nxe-menu-only-scene .nxe-avatar-stand {
-  left: clamp(560px, 55vw, 660px);
-  top: clamp(230px, 37vh, 350px);
+  left: calc(clamp(560px, 55vw, 660px) - 420px);
+  top: clamp(130px, calc(37vh - 100px), 250px);
   z-index: 30;
-  width: 360px;
+  width: 1200px;
 }
 
 .nxe-menu-only-scene .nxe-avatar-stand .avatar-stage {
-  min-height: 430px;
+  min-height: 530px;
   overflow: visible;
 }
 
 .nxe-menu-only-scene .nxe-avatar-stand .avatar-rig-viewer {
-  width: 360px;
-  height: 420px;
+  width: 1200px;
+  max-width: none;
+  height: 520px;
   margin-bottom: 0;
   overflow: visible;
   background: transparent;

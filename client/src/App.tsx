@@ -247,8 +247,9 @@ function AvatarRigViewer({
         const size = box.getSize(new THREE.Vector3());
         const center = box.getCenter(new THREE.Vector3());
         const maxDimension = Math.max(size.x, size.y, size.z) || 1;
+        const viewerHeightScale = Math.min(1, 420 / Math.max(mount.clientHeight, 1));
         model.position.set(-center.x, -box.min.y, -center.z);
-        model.scale.setScalar(2.45 / maxDimension);
+        model.scale.setScalar((2.45 * viewerHeightScale) / maxDimension);
         scene.add(model);
 
         const clips = gltf.animations.slice(0, MAX_AVATAR_ANIMATIONS);

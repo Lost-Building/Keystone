@@ -99,7 +99,7 @@ interface CurrentUser {
 function App() {
   const [activeTab, setActiveTab] = useState<'library' | 'marketplace' | 'developer'>('marketplace');
   const [library, setLibrary] = useState<LibraryItem[]>([]);
-  const [marketplace, setMarketplace] = useState<MarketplaceListing[]>([]);
+  const [, setMarketplace] = useState<MarketplaceListing[]>([]);
   
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, item: LibraryItem | null } | null>(null);
   const [sellModal, setSellModal] = useState<LibraryItem | null>(null);
@@ -241,35 +241,6 @@ function App() {
       }
     } catch (error) {
       console.error('Failed to list game', error);
-    }
-  };
-
-  const handleBuy = async (listing: MarketplaceListing) => {
-    if (IS_PUBLIC_DEMO) {
-      alert(`Demo mode: Stripe Checkout would open for ${listing.game.title} at $${listing.salePrice.toFixed(2)} once the backend is hosted.`);
-      return;
-    }
-
-    try {
-      const response = await apiFetch('/api/checkout/marketplace', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          keyId: listing.keyId
-        })
-      });
-      const data = await response.json();
-
-      if (!response.ok) {
-        alert(data.error || 'Could not start checkout');
-        return;
-      }
-
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch (error) {
-      console.error('Failed to start checkout', error);
     }
   };
 
@@ -540,12 +511,6 @@ function App() {
                     <strong>KeyStone LIVE</strong>
                   </div>
                   <section className="nxe-scene">
-                    <button type="button" className="nxe-feature-card" onClick={() => handleBuy(demoMarketplace[0])}>
-                      <img src="/Keystone/epic_quest.jpg" alt="Epic Quest" />
-                      <span>Play Epic Quest</span>
-                      <b>1 of {marketplace.length || 3}</b>
-                    </button>
-
                     <div className="nxe-profile-card">
                       <div>
                         <strong>{currentUser.username}</strong>

@@ -1030,7 +1030,7 @@ h1 {
 
 .nxe-menu-only-scene .nxe-avatar-stand {
   left: clamp(620px, 64vw, 740px);
-  top: clamp(410px, 50vh, 470px);
+  top: clamp(330px, 50vh, 470px);
   z-index: 30;
   width: 190px;
 }

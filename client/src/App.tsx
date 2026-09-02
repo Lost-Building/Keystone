@@ -208,12 +208,12 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
     scene.add(brain);
 
     const nodeLabels = [
-      { label: 'STORE', position: [.42, 1.22, .84], color: '#7152d9' },
-      { label: 'LIBRARY', position: [1.08, .55, .86], color: '#e6932d' },
-      { label: 'DEVELOPER', position: [1.03, -.52, .84], color: '#d54370' },
-      { label: 'AVATAR', position: [0, -1.08, .86], color: '#2fb4be' },
-      { label: 'DEALS', position: [-1.03, -.52, .84], color: '#9db63f' },
-      { label: 'SETTINGS', position: [-1.08, .55, .86], color: '#8359d4' }
+      { label: 'STORE', position: [.38, 1.02, .9], color: '#7152d9' },
+      { label: 'LIBRARY', position: [.96, .5, .9], color: '#e6932d' },
+      { label: 'DEVELOPER', position: [.92, -.42, .9], color: '#d54370' },
+      { label: 'AVATAR', position: [0, -.92, .9], color: '#2fb4be' },
+      { label: 'DEALS', position: [-.92, -.42, .9], color: '#9db63f' },
+      { label: 'SETTINGS', position: [-.96, .5, .9], color: '#8359d4' }
     ];
     const makeNodeTexture = (label: string, color: string) => {
       const canvas = document.createElement('canvas');

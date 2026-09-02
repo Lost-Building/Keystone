@@ -2143,9 +2143,7 @@ button:disabled {
 
 /* The brain-network centerpiece remains visible across saved themes. */
 .app-container:not([data-theme="cosmic-mind"]) .cosmic-brain-core { display: block; }
-.app-container .cosmic-brain-canvas {
-  background: url('/Keystone/brain_network.png') center / contain no-repeat;
-}
+.nxe-scene .nxe-card-stack { display: none !important; }
 
 @scope (.app-container[data-theme="cosmic-mind"]) {
 :scope {

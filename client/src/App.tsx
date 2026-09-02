@@ -265,17 +265,21 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
       return value - Math.floor(value);
     };
     const brainCubes: THREE.Mesh[] = [];
-    [-.5, .5].forEach((centerX, hemisphereIndex) => {
+    [-.46, .46].forEach((centerX, hemisphereIndex) => {
       const cubeCount = 170;
       let cubeIndex = 0;
       let attempt = 0;
       while (cubeIndex < cubeCount && attempt < cubeCount * 8) {
         const seed = hemisphereIndex * 211 + attempt + 1;
-        const localX = (seeded(seed) * 2 - 1) * .95;
         const localY = (seeded(seed + 2) * 2 - 1) * 1.02;
-        const localZ = (seeded(seed + 4) * 2 - 1) * .9;
+        // A brain silhouette is broad through the temples and gently narrows
+        // at the crown and lower lobes instead of forming a round/heart blob.
+        const heightT = (localY + 1.02) / 2.04;
+        const lobeWidth = .72 + .28 * Math.sin(Math.PI * heightT);
+        const localX = (seeded(seed) * 2 - 1) * .84 * lobeWidth;
+        const localZ = (seeded(seed + 4) * 2 - 1) * (.84 + .08 * Math.sin(Math.PI * heightT));
         attempt += 1;
-        if ((localX * localX) / (.95 * .95) + (localY * localY) / (1.02 * 1.02) + (localZ * localZ) / (.9 * .9) > 1) continue;
+        if ((localX * localX) / ((.84 * lobeWidth) ** 2) + (localY * localY) / (1.02 * 1.02) + (localZ * localZ) / ((.84 + .08 * Math.sin(Math.PI * heightT)) ** 2) > 1) continue;
         const worldX = centerX + localX;
         if (Math.abs(worldX) < .1 && localY > -.65) continue;
         const size = .16 + seeded(seed + 3) * .055;

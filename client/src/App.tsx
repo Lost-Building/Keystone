@@ -264,6 +264,7 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
       const value = Math.sin(seed * 9283.17) * 43758.5453;
       return value - Math.floor(value);
     };
+    const brainCubes: THREE.Mesh[] = [];
     [-.5, .5].forEach((centerX, hemisphereIndex) => {
       const cubeCount = 170;
       let cubeIndex = 0;
@@ -287,6 +288,7 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
         cube.scale.setScalar(size);
         cube.rotation.set(seeded(seed + 5) * .22, seeded(seed + 7) * .22, seeded(seed + 9) * .22);
         brain.add(cube);
+        brainCubes.push(cube);
         cubeIndex += 1;
       }
     });
@@ -298,7 +300,27 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
       cube.position.set((column - .5) * .16, -.84 - row * .13, .04);
       cube.scale.setScalar(.19);
       brain.add(cube);
+      brainCubes.push(cube);
     }
+
+    const connectionPairs: [THREE.Mesh, THREE.Mesh][] = [];
+    brainCubes.forEach((cube, index) => {
+      const nearest = brainCubes
+        .filter((_, candidateIndex) => candidateIndex !== index)
+        .map((candidate) => ({ candidate, distance: cube.position.distanceTo(candidate.position) }))
+        .sort((a, b) => a.distance - b.distance)
+        .slice(0, 2);
+      nearest.forEach(({ candidate }) => {
+        if (!connectionPairs.some(([from, to]) => (from === cube && to === candidate) || (from === candidate && to === cube))) connectionPairs.push([cube, candidate]);
+      });
+    });
+    const connectionPositions = new Float32Array(connectionPairs.length * 6);
+    connectionPairs.forEach(([from, to], index) => {
+      connectionPositions.set([from.position.x, from.position.y, from.position.z, to.position.x, to.position.y, to.position.z], index * 6);
+    });
+    const connectionGeometry = new THREE.BufferGeometry();
+    connectionGeometry.setAttribute('position', new THREE.BufferAttribute(connectionPositions, 3));
+    brain.add(new THREE.LineSegments(connectionGeometry, new THREE.LineBasicMaterial({ color: 0xd7f8ff, transparent: true, opacity: .24 })));
 
     const starGeometry = new THREE.BufferGeometry();
     const positions = new Float32Array(270);

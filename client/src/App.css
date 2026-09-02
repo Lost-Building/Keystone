@@ -2203,7 +2203,7 @@ button:disabled {
     radial-gradient(circle at 87% 70%, #fff 0 1px, transparent 1.5px),
     radial-gradient(circle at 22% 82%, #e5b8ff 0 1px, transparent 1.5px),
     radial-gradient(ellipse at center, rgba(76, 37, 130, 0.22), transparent 55%),
-    #03020a !important;
+    linear-gradient(135deg, #08052c 0%, #07133e 45%, #17062f 100%) !important;
 }
 
 .nxe-scene::before {
@@ -2212,7 +2212,9 @@ button:disabled {
   inset: -30%;
   z-index: -1;
   opacity: .42;
-  background: repeating-radial-gradient(ellipse at center, transparent 0 70px, rgba(114, 61, 210, .08) 72px, transparent 74px 116px);
+  background:
+    radial-gradient(ellipse at 50% 54%, transparent 0 20%, rgba(44, 205, 255, .12) 21%, transparent 39%),
+    repeating-radial-gradient(ellipse at center, transparent 0 70px, rgba(114, 61, 210, .1) 72px, transparent 74px 116px);
   animation: galaxy-drift 28s linear infinite;
 }
 

@@ -433,7 +433,7 @@ function WorldModel() {
     scene.add(new THREE.HemisphereLight(0xd8f9ff, 0x09102d, 2.4));
     const key = new THREE.PointLight(0x5ce8ff, 18, 20); key.position.set(3, 4, 5); scene.add(key);
     let model: THREE.Object3D | null = null;
-    let yaw = 0; let pitch = 0; let dragging = false; let lastX = 0; let lastY = 0; let downX = 0; let downY = 0;
+    let yaw = 0; let pitch = 0; let dragging = false; let paused = false; let lastX = 0; let lastY = 0; let downX = 0; let downY = 0;
     const clickableCards: THREE.Sprite[] = []; let highlight: THREE.LineSegments | null = null;
     new GLTFLoader().load('/Keystone/World.glb', (gltf) => {
       model = gltf.scene;
@@ -460,14 +460,14 @@ function WorldModel() {
       if (wasClick) {
         const rect = canvas.getBoundingClientRect(); const pointer = new THREE.Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
         const raycaster = new THREE.Raycaster(); raycaster.setFromCamera(pointer, camera); const hit = raycaster.intersectObjects(clickableCards)[0];
-        if (hit) { const next = window.prompt('Add or edit this cube card:', (hit.object as THREE.Sprite).userData.label || ''); if (next !== null) { (hit.object as THREE.Sprite).userData.label = next; const texture = (hit.object as THREE.Sprite).material.map; if (texture) { const context = (texture.image as HTMLCanvasElement).getContext('2d'); if (context) { context.clearRect(0, 0, 256, 128); context.fillStyle = '#168e9c'; context.fillRect(0, 0, 256, 128); context.fillStyle = '#050505'; context.font = '900 30px Inter, sans-serif'; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(next.slice(0, 16), 128, 64); texture.needsUpdate = true; } } } }
+        if (hit) { paused = true; const next = window.prompt('Add or edit this cube card:', (hit.object as THREE.Sprite).userData.label || ''); if (next !== null) { (hit.object as THREE.Sprite).userData.label = next; const texture = (hit.object as THREE.Sprite).material.map; if (texture) { const context = (texture.image as HTMLCanvasElement).getContext('2d'); if (context) { context.clearRect(0, 0, 256, 128); context.fillStyle = '#168e9c'; context.fillRect(0, 0, 256, 128); context.fillStyle = '#050505'; context.font = '900 30px Inter, sans-serif'; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(next.slice(0, 16), 128, 64); texture.needsUpdate = true; } } } }
       }
       dragging = false; canvas.releasePointerCapture(event.pointerId);
     };
     canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointermove', hover); canvas.addEventListener('pointerup', up); canvas.addEventListener('wheel', wheel, { passive: false });
     const resize = () => { const width = Math.max(1, mount.clientWidth); const height = Math.max(1, mount.clientHeight); renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix(); };
     const observer = new ResizeObserver(resize); observer.observe(mount); resize();
-    let frame = 0; const animate = () => { frame = requestAnimationFrame(animate); if (model && !dragging) model.rotation.y += .001; renderer.render(scene, camera); }; animate();
+    let frame = 0; const animate = () => { frame = requestAnimationFrame(animate); if (model && !dragging && !paused) model.rotation.y += .001; renderer.render(scene, camera); }; animate();
     return () => { cancelAnimationFrame(frame); observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move); canvas.removeEventListener('pointermove', hover); canvas.removeEventListener('pointerup', up); canvas.removeEventListener('wheel', wheel); renderer.dispose(); renderer.domElement.remove(); };
   }, []);
   return <div ref={mountRef} className="cosmic-brain-canvas" aria-label="Interactive World 3D model" />;

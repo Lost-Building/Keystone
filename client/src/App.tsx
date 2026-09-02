@@ -465,7 +465,7 @@ function WorldModel() {
       dragging = false; canvas.releasePointerCapture(event.pointerId);
     };
     canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointermove', hover); canvas.addEventListener('pointerup', up); canvas.addEventListener('wheel', wheel, { passive: false });
-    const resize = () => { const s = Math.max(1, Math.min(mount.clientWidth, mount.clientHeight)); renderer.setSize(s, s, false); camera.aspect = 1; camera.updateProjectionMatrix(); };
+    const resize = () => { const width = Math.max(1, mount.clientWidth); const height = Math.max(1, mount.clientHeight); renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix(); };
     const observer = new ResizeObserver(resize); observer.observe(mount); resize();
     let frame = 0; const animate = () => { frame = requestAnimationFrame(animate); if (model && !dragging) model.rotation.y += .001; if (highlight) highlight.update(); renderer.render(scene, camera); }; animate();
     return () => { cancelAnimationFrame(frame); observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move); canvas.removeEventListener('pointermove', hover); canvas.removeEventListener('pointerup', up); canvas.removeEventListener('wheel', wheel); renderer.dispose(); renderer.domElement.remove(); };

@@ -423,7 +423,7 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
 
 void CosmicBrain3D;
 
-function WorldModel() {
+function WorldModel({ onSelect }: { onSelect: (label: string) => void }) {
   const mountRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const mount = mountRef.current; if (!mount) return;
@@ -433,7 +433,7 @@ function WorldModel() {
     scene.add(new THREE.HemisphereLight(0xd8f9ff, 0x09102d, 2.4));
     const key = new THREE.PointLight(0x5ce8ff, 18, 20); key.position.set(3, 4, 5); scene.add(key);
     let model: THREE.Object3D | null = null;
-    let yaw = 0; let pitch = 0; let dragging = false; let paused = false; let lastX = 0; let lastY = 0; let downX = 0; let downY = 0;
+    let yaw = 0; let pitch = 0; let dragging = false; let paused = false; let entryStart = 0; let entryDestination = ''; let entryTarget: THREE.Object3D | null = null; let lastX = 0; let lastY = 0; let downX = 0; let downY = 0;
     const clickableCards: THREE.Sprite[] = []; let highlight: THREE.LineSegments | null = null;
     new GLTFLoader().load('/Keystone/World.glb', (gltf) => {
       model = gltf.scene;
@@ -446,7 +446,7 @@ function WorldModel() {
         const context = canvas.getContext('2d'); if (!context) return;
         context.fillStyle = '#050505'; context.font = '900 34px Inter, sans-serif'; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(labels[index], 128, 64);
         const card = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthTest: false }));
-        card.userData.label = labels[index]; cube.geometry.computeBoundingBox(); const face = cube.geometry.boundingBox?.getSize(new THREE.Vector3()).x || .6; card.scale.set(face * .72, face * .36, 1); card.position.set(0, 0, face * .51); cube.add(card); clickableCards.push(card);
+        card.userData.label = labels[index]; cube.userData.destination = labels[index]; cube.geometry.computeBoundingBox(); const face = cube.geometry.boundingBox?.getSize(new THREE.Vector3()).x || .6; card.scale.set(face * .72, face * .36, 1); card.position.set(0, 0, face * .51); cube.add(card); clickableCards.push(card);
       });
     });
     const canvas = renderer.domElement;
@@ -459,14 +459,14 @@ function WorldModel() {
       if (wasClick) {
         const rect = canvas.getBoundingClientRect(); const pointer = new THREE.Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
         const raycaster = new THREE.Raycaster(); raycaster.setFromCamera(pointer, camera); const hit = raycaster.intersectObjects(clickableCards)[0];
-        if (hit) { paused = true; const next = window.prompt('Add or edit this cube card:', (hit.object as THREE.Sprite).userData.label || ''); if (next !== null) { (hit.object as THREE.Sprite).userData.label = next; const texture = (hit.object as THREE.Sprite).material.map; if (texture) { const context = (texture.image as HTMLCanvasElement).getContext('2d'); if (context) { context.clearRect(0, 0, 256, 128); context.fillStyle = '#050505'; context.font = '900 30px Inter, sans-serif'; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(next.slice(0, 16), 128, 64); texture.needsUpdate = true; } } } }
+        if (hit) { const destination = (hit.object as THREE.Mesh).userData.destination; if (destination) { paused = true; entryStart = performance.now(); entryDestination = destination; entryTarget = hit.object; } }
       }
       dragging = false; canvas.releasePointerCapture(event.pointerId);
     };
     canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointermove', hover); canvas.addEventListener('pointerup', up); canvas.addEventListener('wheel', wheel, { passive: false });
     const resize = () => { const width = Math.max(1, mount.clientWidth); const height = Math.max(1, mount.clientHeight); renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix(); };
     const observer = new ResizeObserver(resize); observer.observe(mount); resize();
-    let frame = 0; const animate = () => { frame = requestAnimationFrame(animate); if (model && !dragging && !paused) model.rotation.y += .001; renderer.render(scene, camera); }; animate();
+    let frame = 0; const animate = (time = performance.now()) => { frame = requestAnimationFrame(animate); if (model && !dragging && !paused) model.rotation.y += .001; if (entryTarget && entryStart) { const progress = Math.min(1, (time - entryStart) / 650); camera.position.z = 7 - progress * 5.4; camera.lookAt(entryTarget.getWorldPosition(new THREE.Vector3())); if (progress >= 1) { const destination = entryDestination; entryTarget = null; entryStart = 0; onSelect(destination); } } renderer.render(scene, camera); }; animate();
     return () => { cancelAnimationFrame(frame); observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move); canvas.removeEventListener('pointermove', hover); canvas.removeEventListener('pointerup', up); canvas.removeEventListener('wheel', wheel); renderer.dispose(); renderer.domElement.remove(); };
   }, []);
   return <div ref={mountRef} className="cosmic-brain-canvas" aria-label="Interactive World 3D model" />;
@@ -1172,7 +1172,7 @@ function App() {
                 <div className="cosmic-brain-core" aria-hidden="true">
                   <span className="brain-orbit orbit-one"></span>
                   <span className="brain-orbit orbit-two"></span>
-                  <WorldModel />
+                  <WorldModel onSelect={handleCosmicNodeSelect} />
                   <span className="brain-core-label">THE EVERYTHING</span>
                 </div>
                 <div className="nxe-profile-card public-signin-card">
@@ -1325,7 +1325,7 @@ function App() {
                     <div className="cosmic-brain-core" aria-hidden="true">
                       <span className="brain-orbit orbit-one"></span>
                       <span className="brain-orbit orbit-two"></span>
-                      <WorldModel />
+                      <WorldModel onSelect={handleCosmicNodeSelect} />
                       <span className="brain-core-label">THE EVERYTHING</span>
                     </div>
                     <div className="nxe-avatar-stand">

@@ -2158,7 +2158,7 @@ button:disabled {
 }
 
 .blade-dashboard.nxe-dashboard {
-  grid-template-columns: 0 minmax(0, 1fr) 0;
+  grid-template-columns: minmax(0, 1fr);
   background: transparent;
 }
 

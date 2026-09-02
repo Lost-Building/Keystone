@@ -234,6 +234,38 @@ function CosmicBrain3D() {
       lobe.add(neuralPoints);
     });
 
+    const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
+    const cubePalette = [0xff4f78, 0xffa21f, 0x3a9cff, 0xd9ed6f, 0x30d6c7, 0xffd16a];
+    const cubeMaterials = cubePalette.map((color) => new THREE.MeshPhysicalMaterial({
+      color,
+      roughness: .38,
+      metalness: .08,
+      clearcoat: .62,
+      clearcoatRoughness: .22
+    }));
+    const seeded = (seed: number) => {
+      const value = Math.sin(seed * 9283.17) * 43758.5453;
+      return value - Math.floor(value);
+    };
+    lobes.forEach(([x, y, z, sx, sy, sz], lobeIndex) => {
+      for (let cubeIndex = 0; cubeIndex < 18; cubeIndex += 1) {
+        const seed = lobeIndex * 31 + cubeIndex * 7 + 1;
+        const theta = seeded(seed) * Math.PI * 2;
+        const phi = Math.acos(2 * seeded(seed + 2) - 1);
+        const radius = .7 + seeded(seed + 4) * .36;
+        const size = .1 + seeded(seed + 6) * .16;
+        const cube = new THREE.Mesh(cubeGeometry, cubeMaterials[(lobeIndex + cubeIndex) % cubeMaterials.length]);
+        cube.position.set(
+          x + Math.sin(phi) * Math.cos(theta) * sx * radius,
+          y + Math.cos(phi) * sy * radius,
+          z + Math.sin(phi) * Math.sin(theta) * sz * radius
+        );
+        cube.scale.setScalar(size);
+        cube.rotation.set(seeded(seed + 8) * Math.PI, seeded(seed + 9) * Math.PI, seeded(seed + 10) * Math.PI);
+        brain.add(cube);
+      }
+    });
+
     const stem = new THREE.Mesh(new THREE.CapsuleGeometry(.33, 1.05, 10, 24), tissue);
     stem.position.set(.1, -1.55, -.08);
     stem.rotation.z = -.12;
@@ -460,6 +492,7 @@ function App() {
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [, setMarketplace] = useState<MarketplaceListing[]>([]);
   const [activeDashboardCard, setActiveDashboardCard] = useState(0);
+  const [cosmicZoom, setCosmicZoom] = useState(1);
   const [avatarRig, setAvatarRig] = useState<AvatarRig | null>(null);
   const [avatarRigUrl, setAvatarRigUrl] = useState('');
   const [avatarClipNames, setAvatarClipNames] = useState<string[]>([]);
@@ -951,6 +984,18 @@ function App() {
     </div>
   );
 
+  const adjustCosmicZoom = (amount: number) => {
+    setCosmicZoom((current) => Math.min(1.65, Math.max(.72, Number((current + amount).toFixed(2)))));
+  };
+
+  const cosmicZoomControls = (
+    <div className="cosmic-zoom-controls" aria-label="Cosmic theme zoom controls">
+      <button type="button" onClick={() => adjustCosmicZoom(-.12)} aria-label="Zoom out">−</button>
+      <span>{Math.round(cosmicZoom * 100)}%</span>
+      <button type="button" onClick={() => adjustCosmicZoom(.12)} aria-label="Zoom in">+</button>
+    </div>
+  );
+
   if (!token || !currentUser) {
     return (
       <div className="app-container" data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties}>
@@ -967,7 +1012,12 @@ function App() {
                 <span>Sign In</span>
                 <strong>KeyStone LIVE</strong>
               </div>
-              <section className="nxe-scene public-nxe-scene">
+              <section
+                className="nxe-scene public-nxe-scene"
+                style={{ '--cosmic-zoom': cosmicZoom } as React.CSSProperties}
+                onWheel={(event) => selectedAvatarTheme.id === 'cosmic-mind' && adjustCosmicZoom(event.deltaY < 0 ? .08 : -.08)}
+              >
+                {cosmicZoomControls}
                 <svg className="neural-network-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
                   <defs><filter id="neuralGlowPublic"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
                   {[[500,78],[805,205],[790,505],[500,622],[210,505],[195,205]].map(([x,y], index) => (
@@ -1115,7 +1165,12 @@ function App() {
                     <span>{currentUser.username}</span>
                     <strong>KeyStone LIVE</strong>
                   </div>
-                  <section className={`nxe-scene nxe-menu-only-scene ${storeOpen ? 'store-open' : ''}`}>
+                  <section
+                    className={`nxe-scene nxe-menu-only-scene ${storeOpen ? 'store-open' : ''}`}
+                    style={{ '--cosmic-zoom': cosmicZoom } as React.CSSProperties}
+                    onWheel={(event) => selectedAvatarTheme.id === 'cosmic-mind' && adjustCosmicZoom(event.deltaY < 0 ? .08 : -.08)}
+                  >
+                    {cosmicZoomControls}
                     <svg className="neural-network-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
                       <defs><filter id="neuralGlow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
                       {[[500,78],[805,205],[790,505],[500,622],[210,505],[195,205]].map(([x,y], index) => (

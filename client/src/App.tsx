@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import './App.css';
 
 // VERSION RULE: increment SITE_VERSION for every published site update.
-const SITE_VERSION = 'V5';
+const SITE_VERSION = 'V6';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const IS_PUBLIC_DEMO = window.location.hostname.endsWith('github.io') || new URLSearchParams(window.location.search).has('demo');
@@ -1144,7 +1144,7 @@ function App() {
 
   if (!token || !currentUser) {
     return (
-      <div className={`app-container ${dashboardCards[activeDashboardCard]?.label === 'Settings' ? 'settings-panel-open' : ''}`} data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties}>
+      <div className={`app-container ${selectedAvatarTheme.id === 'cosmic-mind' && dashboardCards[activeDashboardCard]?.label === 'Settings' ? 'settings-panel-open' : ''}`} data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties}>
         <input ref={avatarInputRef} className="avatar-file-input" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" onChange={handleAvatarUpload} />
         <div className="xbox-shell public-xbox-shell public-nxe-shell">
           <main className="blade-dashboard nxe-dashboard">
@@ -1251,7 +1251,7 @@ function App() {
   }
 
   return (
-    <div className={`app-container ${dashboardCards[activeDashboardCard]?.label === 'Settings' ? 'settings-panel-open' : ''}`} data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties} onClick={closeContextMenu}>
+    <div className={`app-container ${selectedAvatarTheme.id === 'cosmic-mind' && dashboardCards[activeDashboardCard]?.label === 'Settings' ? 'settings-panel-open' : ''}`} data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties} onClick={closeContextMenu}>
       <input ref={avatarInputRef} className="avatar-file-input" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" onChange={handleAvatarUpload} />
       <div className="titlebar">
         <div className="titlebar-drag-region"></div>

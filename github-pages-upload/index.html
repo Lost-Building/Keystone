@@ -1,152 +1,17 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/svg+xml" href="/Keystone/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>KeyStone</title>
-    <meta name="description" content="KeyStone is a digital marketplace for downloadable video games.">
-    <link rel="stylesheet" href="./styles.css">
+    <script type="module" crossorigin src="/Keystone/assets/index-BFbySYEw.js"></script>
+    <link rel="stylesheet" crossorigin href="/Keystone/assets/index-5I2v613k.css">
   </head>
   <body>
-    <header class="site-header">
-      <nav class="nav">
-        <a class="brand" href="./">KeyStone</a>
-        <div class="nav-links">
-          <a href="#store">Store</a>
-          <a href="#avatar-market">Avatars</a>
-          <a href="#policies">Policies</a>
-          <a href="#contact">Contact</a>
-        </div>
-      </nav>
-    </header>
-
-    <main>
-      <section class="hero">
-        <div class="hero-copy">
-          <p class="eyebrow">Game store and player identity</p>
-          <h1>KeyStone</h1>
-          <p class="lede">
-            KeyStone opens straight into the Store, where players can buy games, trade player-owned keys,
-            and build a console-era avatar with outfits, emotes, room props, and profile collectibles.
-          </p>
-        </div>
-        <div class="avatar-preview" data-theme="deep-space" aria-label="Featured KeyStone avatar">
-          <div class="avatar-stage">
-            <span class="avatar-shadow"></span>
-            <span class="avatar-head"><i></i><b></b></span>
-            <span class="avatar-torso"></span>
-            <span class="avatar-legs"></span>
-          </div>
-          <div class="avatar-drop">
-            <span>Today's Avatar Drop</span>
-            <strong>Arcade Pilot Set</strong>
-            <b>$4.99</b>
-          </div>
-          <div class="theme-picker" aria-label="Avatar card themes">
-            <span>Card theme</span>
-            <div class="theme-row">
-              <button class="active" data-theme="deep-space" title="Deep Space"><i></i><i></i><i></i></button>
-              <button data-theme="cyberpunk" title="Cyberpunk"><i></i><i></i><i></i></button>
-              <button data-theme="warm-tech" title="Warm Tech"><i></i><i></i><i></i></button>
-              <button data-theme="ocean-glass" title="Ocean Glass"><i></i><i></i><i></i></button>
-              <button data-theme="royal-purple" title="Royal Purple"><i></i><i></i><i></i></button>
-              <button data-theme="clean-modern" title="Clean Modern"><i></i><i></i><i></i></button>
-              <button data-theme="sunset" title="Sunset"><i></i><i></i><i></i></button>
-              <button data-theme="forest-premium" title="Forest Premium"><i></i><i></i><i></i></button>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="store" class="section">
-        <div class="section-inner">
-          <h2>Store Front</h2>
-          <div class="grid">
-            <article>
-              <h3>Buy Games</h3>
-              <p>Players land on the Store first and can purchase digital game licenses through secure checkout.</p>
-            </article>
-            <article>
-              <h3>Trade Keys</h3>
-              <p>Eligible games can be resold by players while original developers keep earning royalties.</p>
-            </article>
-            <article>
-              <h3>Avatar Goods</h3>
-              <p>Cosmetics, poses, emotes, room kits, and badges can sit beside games as sellable inventory.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section id="avatar-market" class="section section-alt">
-        <div class="section-inner">
-          <h2>Avatar Market</h2>
-          <div class="grid">
-            <article>
-              <h3>Holo Hoodie</h3>
-              <p>A rare jacket drop for players who want their profile to feel instantly recognizable.</p>
-            </article>
-            <article>
-              <h3>Victory Spin</h3>
-              <p>A profile emote players can equip after achievements, reviews, or game launches.</p>
-            </article>
-            <article>
-              <h3>Neon Room Kit</h3>
-              <p>A customizable profile space that gives every player a small home inside KeyStone.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section id="policies" class="section section-alt">
-        <div class="section-inner">
-          <h2>Policies</h2>
-          <div class="policy-list">
-            <article>
-              <h3>Payments</h3>
-              <p>Payments are processed through Stripe. KeyStone does not store raw card numbers or CVV codes.</p>
-            </article>
-            <article>
-              <h3>Refunds</h3>
-              <p>Refund requests are reviewed case by case. Digital purchases may be refundable when access has not been used or when required by applicable law.</p>
-            </article>
-            <article>
-              <h3>Privacy</h3>
-              <p>We collect account, purchase, and support information needed to operate the marketplace. We do not sell personal information.</p>
-            </article>
-            <article>
-              <h3>Terms</h3>
-              <p>Users may only upload, sell, or download games when they have the legal rights to do so. Developers are responsible for ensuring submitted content is lawful and authorized.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section id="contact" class="section">
-        <div class="section-inner contact">
-          <h2>Contact</h2>
-          <p>For support, refunds, or business questions, contact KeyStone at:</p>
-          <a class="contact-link" href="mailto:support@example.com">support@example.com</a>
-        </div>
-      </section>
-    </main>
-
-    <footer class="footer">
-      <p>&copy; 2026 KeyStone. All rights reserved.</p>
-    </footer>
-    <script>
-      const card = document.querySelector('.avatar-preview');
-      const buttons = document.querySelectorAll('.theme-row button');
-      const saved = localStorage.getItem('keystoneAvatarTheme') || 'deep-space';
-      card.dataset.theme = saved;
-      buttons.forEach((button) => {
-        button.classList.toggle('active', button.dataset.theme === saved);
-        button.addEventListener('click', () => {
-          card.dataset.theme = button.dataset.theme;
-          localStorage.setItem('keystoneAvatarTheme', button.dataset.theme);
-          buttons.forEach((item) => item.classList.toggle('active', item === button));
-        });
-      });
-    </script>
+    <div id="root"></div>
   </body>
 </html>

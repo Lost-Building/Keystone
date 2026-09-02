@@ -13,6 +13,7 @@ const AVATAR_ANIMATION_INDEX_KEY = 'keystoneAvatarRigAnimationIndex';
 const AVATAR_THEME_KEY = 'keystoneAvatarTheme';
 
 const avatarThemes = [
+  { id: 'original', name: 'Original', colors: ['#5f9f28', '#b1ff57', '#d5ff41'], card: '#5f9f28', stage: '#9dce70', accent: '#b1ff57', outfit: '#d5ff41' },
   { id: 'deep-space', name: 'Deep Space', colors: ['#101A35', '#32B8FF', '#8067FF'], card: '#101A35', stage: '#17274A', accent: '#32B8FF', outfit: '#8067FF' },
   { id: 'cyberpunk', name: 'Cyberpunk', colors: ['#17151F', '#FF3CAC', '#00E5FF'], card: '#17151F', stage: '#321D3D', accent: '#00E5FF', outfit: '#FF3CAC' },
   { id: 'warm-tech', name: 'Warm Tech', colors: ['#29221D', '#C98235', '#F4B942'], card: '#29221D', stage: '#51351F', accent: '#F4B942', outfit: '#C98235' },
@@ -21,6 +22,12 @@ const avatarThemes = [
   { id: 'clean-modern', name: 'Clean Modern', colors: ['#263238', '#90CAF9', '#B8E34B'], card: '#263238', stage: '#455A64', accent: '#B8E34B', outfit: '#90CAF9' },
   { id: 'sunset', name: 'Sunset', colors: ['#421C35', '#FF6B6B', '#FFAA5C'], card: '#421C35', stage: '#71334A', accent: '#FFAA5C', outfit: '#FF6B6B' },
   { id: 'forest-premium', name: 'Forest Premium', colors: ['#102A24', '#159A72', '#D5A928'], card: '#102A24', stage: '#1B4A3A', accent: '#D5A928', outfit: '#159A72' }
+];
+const popularGames = [
+  { title: 'Neon Horizon', image: '/space_explorer.jpg' },
+  { title: 'Starfall Circuit', image: '/epic_quest.jpg' },
+  { title: 'Dungeon Relay', image: '/epic_quest.jpg' },
+  { title: 'Skyline Drift', image: '/space_explorer.jpg' }
 ];
 const MAX_AVATAR_ANIMATIONS = 5;
 
@@ -178,6 +185,135 @@ const saveStoredAvatarRig = async (rig: AvatarRig) => {
   });
 };
 
+function CosmicBrain3D() {
+  const mountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 100);
+    camera.position.set(0, 0.1, 7.2);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setClearColor(0x000000, 0);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    mount.appendChild(renderer.domElement);
+
+    const brain = new THREE.Group();
+    scene.add(brain);
+
+    const tissue = new THREE.MeshPhysicalMaterial({
+      color: 0x7d37d6,
+      emissive: 0x25086a,
+      emissiveIntensity: 1.8,
+      roughness: 0.32,
+      metalness: 0.08,
+      clearcoat: 0.8,
+      clearcoatRoughness: 0.2
+    });
+    const cyanTissue = tissue.clone();
+    cyanTissue.color.setHex(0x245dca);
+    cyanTissue.emissive.setHex(0x073c74);
+
+    const lobes = [
+      [-1.05, .72, .1, .86, 1.1, .78], [-.32, 1.03, .02, .8, .88, .82],
+      [-1.22, -.02, .02, .85, 1.08, .78], [-.35, .15, .42, .86, 1.12, .82],
+      [-.88, -.77, .06, .92, .78, .74], [1.05, .72, .1, .86, 1.1, .78],
+      [.32, 1.03, .02, .8, .88, .82], [1.22, -.02, .02, .85, 1.08, .78],
+      [.35, .15, .42, .86, 1.12, .82], [.88, -.77, .06, .92, .78, .74]
+    ];
+    lobes.forEach(([x, y, z, sx, sy, sz], index) => {
+      const lobe = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 4), index < 5 ? cyanTissue : tissue);
+      lobe.position.set(x, y, z);
+      lobe.scale.set(sx, sy, sz);
+      brain.add(lobe);
+    });
+
+    const stem = new THREE.Mesh(new THREE.CapsuleGeometry(.33, 1.05, 10, 24), tissue);
+    stem.position.set(.1, -1.55, -.08);
+    stem.rotation.z = -.12;
+    brain.add(stem);
+
+    const neuralMaterial = new THREE.MeshBasicMaterial({ color: 0x66e8ff, transparent: true, opacity: .76 });
+    for (let i = 0; i < 14; i += 1) {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(1.05 + (i % 4) * .14, .018, 8, 80), neuralMaterial);
+      ring.rotation.set((i * .73) % Math.PI, (i * 1.17) % Math.PI, (i * .41) % Math.PI);
+      ring.position.set((i % 2 ? 1 : -1) * .52, (i % 5 - 2) * .22, .48);
+      ring.scale.set(1, .68, .78);
+      brain.add(ring);
+    }
+
+    const starGeometry = new THREE.BufferGeometry();
+    const positions = new Float32Array(270);
+    for (let i = 0; i < positions.length; i += 3) {
+      const radius = 2.1 + Math.random() * 1.2;
+      const angle = Math.random() * Math.PI * 2;
+      positions[i] = Math.cos(angle) * radius;
+      positions[i + 1] = (Math.random() - .5) * 3.7;
+      positions[i + 2] = Math.sin(angle) * radius * .5;
+    }
+    starGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const stars = new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xd8c4ff, size: .055, transparent: true, opacity: .8 }));
+    scene.add(stars);
+
+    scene.add(new THREE.HemisphereLight(0xaadfff, 0x170025, 2.5));
+    const rim = new THREE.PointLight(0xff42d0, 22, 15);
+    rim.position.set(3, 2, 4);
+    scene.add(rim);
+    const key = new THREE.PointLight(0x39dfff, 20, 15);
+    key.position.set(-3, 1, 4);
+    scene.add(key);
+
+    let frame = 0;
+    let pointerX = 0;
+    let pointerY = 0;
+    const onPointerMove = (event: PointerEvent) => {
+      pointerX = (event.clientX / window.innerWidth - .5) * .55;
+      pointerY = (event.clientY / window.innerHeight - .5) * .25;
+    };
+    window.addEventListener('pointermove', onPointerMove);
+
+    const resize = () => {
+      const size = Math.max(1, Math.min(mount.clientWidth, mount.clientHeight));
+      renderer.setSize(size, size, false);
+      camera.aspect = 1;
+      camera.updateProjectionMatrix();
+    };
+    const observer = new ResizeObserver(resize);
+    observer.observe(mount);
+    resize();
+
+    const animate = (time: number) => {
+      brain.rotation.y += (pointerX - brain.rotation.y) * .035;
+      brain.rotation.x += (-pointerY - brain.rotation.x) * .035;
+      brain.position.y = Math.sin(time * .0012) * .09;
+      stars.rotation.y = time * .00004;
+      frame = requestAnimationFrame(animate);
+      renderer.render(scene, camera);
+    };
+    frame = requestAnimationFrame(animate);
+
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener('pointermove', onPointerMove);
+      renderer.dispose();
+      scene.traverse((object) => {
+        if (object instanceof THREE.Mesh || object instanceof THREE.Points) {
+          object.geometry.dispose();
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          materials.forEach((material) => material.dispose());
+        }
+      });
+      renderer.domElement.remove();
+    };
+  }, []);
+
+  return <div ref={mountRef} className="cosmic-brain-canvas" aria-label="Interactive three-dimensional cosmic brain" role="img" />;
+}
+
 function AvatarRigViewer({
   modelUrl,
   selectedClipIndex,
@@ -329,7 +465,11 @@ function App() {
     const savedIndex = Number(localStorage.getItem(AVATAR_ANIMATION_INDEX_KEY));
     return Number.isInteger(savedIndex) && savedIndex >= 0 ? savedIndex : 0;
   });
-  const [avatarTheme, setAvatarTheme] = useState(() => localStorage.getItem(AVATAR_THEME_KEY) || 'deep-space');
+  const [avatarTheme, setAvatarTheme] = useState(() => localStorage.getItem(AVATAR_THEME_KEY) || 'original');
+  const [storeOpen, setStoreOpen] = useState(false);
+  const [popularGameIndex, setPopularGameIndex] = useState(0);
+  const [popularVideoUrl, setPopularVideoUrl] = useState<string | null>(null);
+  const selectedAvatarTheme = avatarThemes.find((theme) => theme.id === avatarTheme) || avatarThemes[0];
   const avatarInputRef = useRef<HTMLInputElement>(null);
   
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, item: LibraryItem | null } | null>(null);
@@ -618,8 +758,23 @@ function App() {
     localStorage.setItem(AVATAR_THEME_KEY, themeId);
   };
 
+  const openStore = () => setStoreOpen(true);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setPopularGameIndex((index) => (index + 1) % popularGames.length), 3200);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const renderPopularCardContent = () => (
+    <span className="popular-card-content">
+      <small>MOST POPULAR</small>
+      {popularVideoUrl ? <video src={popularVideoUrl} autoPlay muted loop playsInline /> : <img src={popularGames[popularGameIndex].image} alt="" />}
+      <b>{popularGames[popularGameIndex].title}</b>
+    </span>
+  );
+
   const renderAvatarThemePicker = () => (
-    <div className="avatar-theme-picker" aria-label="Avatar card themes">
+    <div className="avatar-theme-picker" aria-label="Avatar card themes" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
       <span className="avatar-theme-label">Card theme</span>
       <div className="avatar-theme-row">
         {avatarThemes.map((theme) => (
@@ -629,7 +784,10 @@ function App() {
             title={theme.name}
             aria-label={`Use ${theme.name} theme`}
             className={theme.id === avatarTheme ? 'active' : ''}
-            onClick={() => selectAvatarTheme(theme.id)}
+            onClick={(event) => {
+              event.stopPropagation();
+              selectAvatarTheme(theme.id);
+            }}
           >
             {theme.colors.map((color) => <i key={color} style={{ backgroundColor: color }} />)}
           </button>
@@ -667,7 +825,7 @@ function App() {
     {
       label: 'Store',
       icon: 'controller',
-      action: () => alert('Store home selected.')
+      action: openStore
     },
     {
       label: 'Library',
@@ -688,6 +846,11 @@ function App() {
       label: 'Deals',
       icon: 'deal-dot',
       action: () => alert('Deals refresh daily in the Store.')
+    },
+    {
+      label: 'Settings',
+      icon: 'settings-dot',
+      action: () => undefined
     }
   ];
 
@@ -711,12 +874,13 @@ function App() {
       label: 'Deals',
       icon: 'deal-dot',
       action: () => alert('Deals refresh daily in the Store.')
+    },
+    {
+      label: 'Settings',
+      icon: 'settings-dot',
+      action: () => undefined
     }
   ];
-
-  const moveDashboardCard = (direction: -1 | 1, cardCount: number) => {
-    setActiveDashboardCard((current) => (current + direction + cardCount) % cardCount);
-  };
 
   const dashboardCardCount = currentUser ? dashboardCards.length : publicDashboardCards.length;
 
@@ -738,7 +902,16 @@ function App() {
   }, [dashboardCardCount]);
 
   const dashboardAvatar = (
-      <div className={`avatar-card dashboard-avatar-card ${avatarRigUrl ? 'has-rig' : ''}`} data-theme={avatarTheme}>
+      <div
+        className={`avatar-card dashboard-avatar-card ${avatarRigUrl ? 'has-rig' : ''}`}
+        data-theme={selectedAvatarTheme.id}
+        style={{
+          '--avatar-card-color': selectedAvatarTheme.card,
+          '--avatar-stage-color': selectedAvatarTheme.stage,
+          '--avatar-accent': selectedAvatarTheme.accent,
+          '--avatar-outfit': selectedAvatarTheme.outfit
+        } as React.CSSProperties}
+      >
       <div className="avatar-stage">
         <div className="avatar-shadow"></div>
         <div className="avatar-actor">
@@ -772,13 +945,12 @@ function App() {
         </div>
         <span className="profile-price">1280G</span>
       </div>
-      {renderAvatarThemePicker()}
     </div>
   );
 
   if (!token || !currentUser) {
     return (
-      <div className="app-container">
+      <div className="app-container" data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties}>
         <input ref={avatarInputRef} className="avatar-file-input" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" onChange={handleAvatarUpload} />
         <div className="xbox-shell public-xbox-shell public-nxe-shell">
           <main className="blade-dashboard nxe-dashboard">
@@ -793,6 +965,12 @@ function App() {
                 <strong>KeyStone LIVE</strong>
               </div>
               <section className="nxe-scene public-nxe-scene">
+                <div className="cosmic-brain-core" aria-hidden="true">
+                  <span className="brain-orbit orbit-one"></span>
+                  <span className="brain-orbit orbit-two"></span>
+                  <CosmicBrain3D />
+                  <span className="brain-core-label">THE EVERYTHING</span>
+                </div>
                 <div className="nxe-profile-card public-signin-card">
                   <form className="nxe-signin-form" onSubmit={handleAuthSubmit}>
                     <strong>KeyStone Profile</strong>
@@ -821,11 +999,17 @@ function App() {
                       <div
                         role="button"
                         tabIndex={0}
-                        className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''}`}
+                        className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Store' && index === activeDashboardCard ? 'store-popular-card' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''}`}
                         style={{
                           '--card-offset': offset,
                           '--card-depth': offset,
-                          zIndex: 20 - offset
+                          '--orbit-index': index,
+                          zIndex: 20 - offset,
+                          ...(card.label === 'Settings' && index === activeDashboardCard ? {
+                            background: selectedAvatarTheme.card,
+                            borderColor: selectedAvatarTheme.accent,
+                            color: '#ffffff'
+                          } : {})
                         } as React.CSSProperties}
                         key={card.label}
                         onClick={() => index === activeDashboardCard ? card.action() : setActiveDashboardCard(index)}
@@ -836,18 +1020,14 @@ function App() {
                         }}
                       >
                         <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
-                        <strong>{card.label}</strong>
+                        <strong>{card.label === 'Store' && index === activeDashboardCard ? renderPopularCardContent() : card.label}</strong>
                         {card.label === 'Avatar' && index === activeDashboardCard && renderAvatarControls()}
+                        {card.label === 'Settings' && index === activeDashboardCard && renderAvatarThemePicker()}
                       </div>
                     );
                   })}
                 </div>
 
-                <div className="nxe-hints">
-                  <span>A Select</span>
-                  <button type="button" onClick={() => moveDashboardCard(-1, publicDashboardCards.length)}>&lt; Previous</button>
-                  <button type="button" onClick={() => moveDashboardCard(1, publicDashboardCards.length)}>Next &gt;</button>
-                </div>
               </section>
             </section>
             <aside className="blade-rail right-blades" aria-label="Right blades">
@@ -862,14 +1042,12 @@ function App() {
   }
 
   return (
-    <div className="app-container" onClick={closeContextMenu}>
+    <div className="app-container" data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties} onClick={closeContextMenu}>
       <input ref={avatarInputRef} className="avatar-file-input" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" onChange={handleAvatarUpload} />
       <div className="titlebar">
         <div className="titlebar-drag-region"></div>
-        <div className="titlebar-title">KeyStone Desktop</div>
         <div className="titlebar-controls">
           <button onClick={logout}>Logout</button>
-          <button className="settings-btn" title="Settings" aria-label="Settings" onClick={() => alert('Settings coming soon.')}>⚙</button>
         </div>
       </div>
       <div className={`content-area ${activeTab === 'marketplace' ? 'store-content-area' : ''}`}>
@@ -925,7 +1103,13 @@ function App() {
                     <span>{currentUser.username}</span>
                     <strong>KeyStone LIVE</strong>
                   </div>
-                  <section className="nxe-scene nxe-menu-only-scene">
+                  <section className={`nxe-scene nxe-menu-only-scene ${storeOpen ? 'store-open' : ''}`}>
+                    <div className="cosmic-brain-core" aria-hidden="true">
+                      <span className="brain-orbit orbit-one"></span>
+                      <span className="brain-orbit orbit-two"></span>
+                      <CosmicBrain3D />
+                      <span className="brain-core-label">THE EVERYTHING</span>
+                    </div>
                     <div className="nxe-avatar-stand">
                       {dashboardAvatar}
                     </div>
@@ -937,11 +1121,17 @@ function App() {
                           <div
                             role="button"
                             tabIndex={0}
-                            className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''}`}
+                            className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Store' && index === activeDashboardCard ? 'store-popular-card' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''}`}
                             style={{
                               '--card-offset': offset,
                               '--card-depth': offset,
-                              zIndex: 20 - offset
+                              '--orbit-index': index,
+                              zIndex: 20 - offset,
+                              ...(card.label === 'Settings' && index === activeDashboardCard ? {
+                                background: selectedAvatarTheme.card,
+                                borderColor: selectedAvatarTheme.accent,
+                                color: '#ffffff'
+                              } : {})
                             } as React.CSSProperties}
                             key={card.label}
                             onClick={() => index === activeDashboardCard ? card.action() : setActiveDashboardCard(index)}
@@ -952,18 +1142,24 @@ function App() {
                             }}
                           >
                             <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
-                            <strong>{card.label}</strong>
+                            <strong>{card.label === 'Store' && index === activeDashboardCard ? renderPopularCardContent() : card.label}</strong>
                             {card.label === 'Avatar' && index === activeDashboardCard && renderAvatarControls()}
+                            {card.label === 'Settings' && index === activeDashboardCard && renderAvatarThemePicker()}
                           </div>
                         );
                       })}
                     </div>
+                    {storeOpen && (
+                      <section className="store-overlay" aria-label="KeyStone Store">
+                        <div className="store-overlay-header">
+                          <div><span className="store-kicker">KeyStone Store</span><h1>Find your next world.</h1></div>
+                          <button type="button" onClick={() => setStoreOpen(false)}>Back</button>
+                        </div>
+                        <div className="store-featured"><span>Featured drop</span><strong>Neon Horizon</strong><small>Explore a glowing city beyond the grid.</small><button type="button">View game · $29.99</button></div>
+                        <div className="store-rows"><div><span>New releases</span><b>4 titles this week</b></div><div><span>Most played</span><b>Community favorites</b></div><div><span>Deals</span><b>Up to 60% off</b></div></div>
+                      </section>
+                    )}
 
-                    <div className="nxe-hints">
-                      <span><b>A</b> Select</span>
-                      <button type="button" aria-label="Previous dashboard card" onClick={() => moveDashboardCard(-1, dashboardCards.length)}>&#9664;</button>
-                      <button type="button" aria-label="Next dashboard card" onClick={() => moveDashboardCard(1, dashboardCards.length)}>&#9654;</button>
-                    </div>
                   </section>
                 </section>
                 <aside className="blade-rail right-blades" aria-label="Right blades">
@@ -1027,6 +1223,33 @@ function App() {
                 </div>
                 <div style={{ marginBottom: '2rem', padding: '1rem', background: '#0b0c10', borderRadius: '8px', border: '1px dashed #66fcf1' }}>
                   <p style={{ color: '#66fcf1', margin: 0, textAlign: 'center' }}>Drag and drop game files (mocked)</p>
+                </div>
+                <div style={{ marginBottom: '2rem' }}>
+                  <label style={{ display: 'block', marginBottom: '0.5rem', color: '#c5c6c7' }}>Most Popular Store Clip (10 seconds max)</label>
+                  <input
+                    name="storeClip"
+                    type="file"
+                    accept="video/mp4,video/webm,video/quicktime"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (!file) return;
+                      const url = URL.createObjectURL(file);
+                      const video = document.createElement('video');
+                      video.preload = 'metadata';
+                      video.onloadedmetadata = () => {
+                        URL.revokeObjectURL(url);
+                        if (video.duration > 10) {
+                          alert('Please choose a game clip that is 10 seconds or shorter.');
+                          event.target.value = '';
+                          return;
+                        }
+                        setPopularVideoUrl(URL.createObjectURL(file));
+                      };
+                      video.src = url;
+                    }}
+                    style={{ width: '100%', color: '#c5c6c7' }}
+                  />
+                  <small style={{ display: 'block', marginTop: '0.4rem', color: '#888' }}>MP4, WebM, or MOV. This clip previews on the rotating Most Popular card.</small>
                 </div>
                 <button type="submit" className="btn-primary" style={{ width: '100%' }}>Upload & Mint Keys</button>
               </form>

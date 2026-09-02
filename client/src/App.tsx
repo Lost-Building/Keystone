@@ -186,8 +186,10 @@ const saveStoredAvatarRig = async (rig: AvatarRig) => {
   });
 };
 
-function CosmicBrain3D() {
+function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const onSelectRef = useRef(onSelect);
+  onSelectRef.current = onSelect;
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -204,6 +206,49 @@ function CosmicBrain3D() {
 
     const brain = new THREE.Group();
     scene.add(brain);
+
+    const nodeLabels = [
+      { label: 'STORE', position: [0, 1.38, .82], color: '#7152d9' },
+      { label: 'LIBRARY', position: [1.12, .62, .86], color: '#e6932d' },
+      { label: 'DEVELOPER', position: [1.06, -.62, .84], color: '#d54370' },
+      { label: 'AVATAR', position: [0, -1.36, .86], color: '#2fb4be' },
+      { label: 'DEALS', position: [-1.06, -.62, .84], color: '#9db63f' },
+      { label: 'SETTINGS', position: [-1.12, .62, .86], color: '#8359d4' }
+    ];
+    const makeNodeTexture = (label: string, color: string) => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 512;
+      canvas.height = 512;
+      const context = canvas.getContext('2d');
+      if (!context) return null;
+      context.clearRect(0, 0, 512, 512);
+      context.fillStyle = color;
+      context.fillRect(0, 0, 512, 512);
+      context.fillStyle = 'rgba(3, 9, 26, .18)';
+      context.fillRect(18, 18, 476, 476);
+      context.fillStyle = '#ffffff';
+      context.font = '800 54px Inter, sans-serif';
+      context.textAlign = 'center';
+      context.textBaseline = 'middle';
+      context.shadowColor = 'rgba(0, 0, 0, .75)';
+      context.shadowBlur = 14;
+      context.fillText(label, 256, 256);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
+    };
+    const nodeMeshes: THREE.Mesh[] = [];
+    nodeLabels.forEach(({ label, position, color }) => {
+      const frontTexture = makeNodeTexture(label, color);
+      const side = new THREE.MeshPhysicalMaterial({ color, roughness: .32, metalness: .12, clearcoat: .7 });
+      const front = new THREE.MeshPhysicalMaterial({ color, map: frontTexture || undefined, roughness: .28, metalness: .08, clearcoat: .8 });
+      const node = new THREE.Mesh(new THREE.BoxGeometry(.54, .54, .34), [side, side, side, side, front, side]);
+      node.position.set(position[0], position[1], position[2]);
+      node.rotation.set(-.06, 0, position[0] * -.08);
+      node.name = label;
+      brain.add(node);
+      nodeMeshes.push(node);
+    });
 
     const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
     const cubePalette = [0xff4f78, 0xffa21f, 0x3a9cff, 0xd9ed6f, 0x30d6c7, 0xffd16a];
@@ -272,10 +317,40 @@ function CosmicBrain3D() {
     let frame = 0;
     let pointerX = 0;
     let pointerY = 0;
+    let dragging = false;
+    let dragX = 0;
+    let dragY = 0;
+    const onPointerDown = (event: PointerEvent) => {
+      dragging = true;
+      dragX = event.clientX;
+      dragY = event.clientY;
+      renderer.domElement.setPointerCapture(event.pointerId);
+    };
+    const onPointerUp = (event: PointerEvent) => {
+      if (dragging && Math.abs(event.clientX - dragX) < 5 && Math.abs(event.clientY - dragY) < 5) {
+        const bounds = renderer.domElement.getBoundingClientRect();
+        const pointer = new THREE.Vector2(((event.clientX - bounds.left) / bounds.width) * 2 - 1, -((event.clientY - bounds.top) / bounds.height) * 2 + 1);
+        const raycaster = new THREE.Raycaster();
+        raycaster.setFromCamera(pointer, camera);
+        const hit = raycaster.intersectObjects(nodeMeshes)[0];
+        if (hit?.object.name) onSelectRef.current(hit.object.name);
+      }
+      dragging = false;
+      renderer.domElement.releasePointerCapture(event.pointerId);
+    };
     const onPointerMove = (event: PointerEvent) => {
+      if (dragging) {
+        brain.rotation.y += (event.clientX - dragX) * .008;
+        brain.rotation.x += (event.clientY - dragY) * .006;
+        dragX = event.clientX;
+        dragY = event.clientY;
+      }
       pointerX = (event.clientX / window.innerWidth - .5) * .55;
       pointerY = (event.clientY / window.innerHeight - .5) * .25;
     };
+    renderer.domElement.addEventListener('pointerdown', onPointerDown);
+    renderer.domElement.addEventListener('pointerup', onPointerUp);
+    renderer.domElement.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointermove', onPointerMove);
 
     const resize = () => {
@@ -302,6 +377,9 @@ function CosmicBrain3D() {
       cancelAnimationFrame(frame);
       observer.disconnect();
       window.removeEventListener('pointermove', onPointerMove);
+      renderer.domElement.removeEventListener('pointerdown', onPointerDown);
+      renderer.domElement.removeEventListener('pointerup', onPointerUp);
+      renderer.domElement.removeEventListener('pointermove', onPointerMove);
       renderer.dispose();
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh || object instanceof THREE.Points) {
@@ -314,7 +392,7 @@ function CosmicBrain3D() {
     };
   }, []);
 
-  return <div ref={mountRef} className="cosmic-brain-canvas" aria-label="Interactive three-dimensional cosmic brain" role="img" />;
+  return <div ref={mountRef} className="cosmic-brain-canvas" aria-label="Interactive three-dimensional cosmic brain with destination cards" role="application" />;
 }
 
 function AvatarRigViewer({
@@ -886,6 +964,12 @@ function App() {
     }
   ];
 
+  const handleCosmicNodeSelect = (label: string) => {
+    const cards = currentUser ? dashboardCards : publicDashboardCards;
+    const card = cards.find((candidate) => candidate.label.toUpperCase() === label);
+    if (card) card.action();
+  };
+
   const handleDashboardCardClick = (card: { label: string; action: () => void }, index: number) => {
     if (selectedAvatarTheme.id === 'cosmic-mind') {
       if (card.label === 'Settings') setActiveDashboardCard(index);
@@ -1007,7 +1091,7 @@ function App() {
                 <div className="cosmic-brain-core" aria-hidden="true">
                   <span className="brain-orbit orbit-one"></span>
                   <span className="brain-orbit orbit-two"></span>
-                  <CosmicBrain3D />
+                  <CosmicBrain3D onSelect={handleCosmicNodeSelect} />
                   <span className="brain-core-label">THE EVERYTHING</span>
                 </div>
                 <div className="nxe-profile-card public-signin-card">
@@ -1160,7 +1244,7 @@ function App() {
                     <div className="cosmic-brain-core" aria-hidden="true">
                       <span className="brain-orbit orbit-one"></span>
                       <span className="brain-orbit orbit-two"></span>
-                      <CosmicBrain3D />
+                      <CosmicBrain3D onSelect={handleCosmicNodeSelect} />
                       <span className="brain-core-label">THE EVERYTHING</span>
                     </div>
                     <div className="nxe-avatar-stand">

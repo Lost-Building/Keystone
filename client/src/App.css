@@ -2151,6 +2151,11 @@ button:disabled {
     var(--void);
 }
 
+:scope .nxe-card-stack { display: none !important; }
+:scope .cosmic-brain-core { pointer-events: auto; }
+.cosmic-brain-canvas { cursor: grab; }
+.cosmic-brain-canvas:active { cursor: grabbing; }
+
 .xbox-shell.public-nxe-shell,
 .xbox-shell.dashboard-store-shell {
   border: 0 !important;

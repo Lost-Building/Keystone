@@ -207,21 +207,6 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
     const brain = new THREE.Group();
     scene.add(brain);
 
-    // Use the authored Blender brain-network asset as the hero backdrop.
-    new GLTFLoader().load('/brain_network.glb', (gltf) => {
-      const authoredBrain = gltf.scene;
-      authoredBrain.name = 'Authored brain network';
-      authoredBrain.scale.setScalar(.42);
-      authoredBrain.position.set(0, -.15, -.55);
-      authoredBrain.traverse((object) => {
-        if (object instanceof THREE.Mesh) {
-          object.castShadow = false;
-          object.receiveShadow = false;
-        }
-      });
-      scene.add(authoredBrain);
-    });
-
     const nodeLabels = [
       { label: 'STORE', position: [.38, 1.02, .9], color: '#7152d9' },
       { label: 'LIBRARY', position: [.96, .5, .9], color: '#e6932d' },
@@ -434,6 +419,27 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
   }, []);
 
   return <div ref={mountRef} className="cosmic-brain-canvas" aria-label="Interactive three-dimensional cosmic brain with destination cards" role="application" />;
+}
+
+void CosmicBrain3D;
+
+function WorldModel() {
+  const mountRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const mount = mountRef.current; if (!mount) return;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(32, 1, .1, 100); camera.position.set(0, 0, 7); camera.lookAt(0, 0, 0);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true }); renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); mount.appendChild(renderer.domElement);
+    scene.add(new THREE.HemisphereLight(0xd8f9ff, 0x09102d, 2.4));
+    const key = new THREE.PointLight(0x5ce8ff, 18, 20); key.position.set(3, 4, 5); scene.add(key);
+    let model: THREE.Object3D | null = null;
+    new GLTFLoader().load('/Keystone/World.glb', (gltf) => { model = gltf.scene; model.scale.setScalar(1.15); scene.add(model); });
+    const resize = () => { const s = Math.max(1, Math.min(mount.clientWidth, mount.clientHeight)); renderer.setSize(s, s, false); camera.aspect = 1; camera.updateProjectionMatrix(); };
+    const observer = new ResizeObserver(resize); observer.observe(mount); resize();
+    let frame = 0; const animate = () => { frame = requestAnimationFrame(animate); if (model) model.rotation.y += .002; renderer.render(scene, camera); }; animate();
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); renderer.dispose(); renderer.domElement.remove(); };
+  }, []);
+  return <div ref={mountRef} className="cosmic-brain-canvas" aria-label="Interactive World 3D model" />;
 }
 
 function AvatarRigViewer({
@@ -1013,6 +1019,7 @@ function App() {
     if (card.label === 'Settings') setActiveDashboardCard(cardIndex);
     else card.action();
   };
+  void handleCosmicNodeSelect;
 
   const handleDashboardCardClick = (card: { label: string; action: () => void }, index: number) => {
     if (selectedAvatarTheme.id === 'cosmic-mind') {
@@ -1135,7 +1142,7 @@ function App() {
                 <div className="cosmic-brain-core" aria-hidden="true">
                   <span className="brain-orbit orbit-one"></span>
                   <span className="brain-orbit orbit-two"></span>
-                  <CosmicBrain3D onSelect={handleCosmicNodeSelect} />
+                  <WorldModel />
                   <span className="brain-core-label">THE EVERYTHING</span>
                 </div>
                 <div className="nxe-profile-card public-signin-card">
@@ -1288,7 +1295,7 @@ function App() {
                     <div className="cosmic-brain-core" aria-hidden="true">
                       <span className="brain-orbit orbit-one"></span>
                       <span className="brain-orbit orbit-two"></span>
-                      <CosmicBrain3D onSelect={handleCosmicNodeSelect} />
+                      <WorldModel />
                       <span className="brain-core-label">THE EVERYTHING</span>
                     </div>
                     <div className="nxe-avatar-stand">

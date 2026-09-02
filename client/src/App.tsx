@@ -992,8 +992,11 @@ function App() {
 
   const handleCosmicNodeSelect = (label: string) => {
     const cards = currentUser ? dashboardCards : publicDashboardCards;
-    const card = cards.find((candidate) => candidate.label.toUpperCase() === label);
-    if (card) card.action();
+    const cardIndex = cards.findIndex((candidate) => candidate.label.toUpperCase() === label.toUpperCase());
+    if (cardIndex < 0) return;
+    const card = cards[cardIndex];
+    if (card.label === 'Settings') setActiveDashboardCard(cardIndex);
+    else card.action();
   };
 
   const handleDashboardCardClick = (card: { label: string; action: () => void }, index: number) => {

@@ -433,7 +433,8 @@ function WorldModel() {
     scene.add(new THREE.HemisphereLight(0xd8f9ff, 0x09102d, 2.4));
     const key = new THREE.PointLight(0x5ce8ff, 18, 20); key.position.set(3, 4, 5); scene.add(key);
     let model: THREE.Object3D | null = null;
-    let yaw = 0; let pitch = 0; let dragging = false; let lastX = 0; let lastY = 0;
+    let yaw = 0; let pitch = 0; let dragging = false; let lastX = 0; let lastY = 0; let downX = 0; let downY = 0;
+    const clickableCards: THREE.Sprite[] = [];
     new GLTFLoader().load('/Keystone/World.glb', (gltf) => {
       model = gltf.scene;
       const bounds = new THREE.Box3().setFromObject(model); const center = bounds.getCenter(new THREE.Vector3()); const size = bounds.getSize(new THREE.Vector3());
@@ -444,15 +445,23 @@ function WorldModel() {
         const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 128;
         const context = canvas.getContext('2d'); if (!context) return;
         context.fillStyle = ['#3a9cff', '#ffad32', '#9db63f', '#2fb4be'][index]; context.fillRect(0, 0, 256, 128);
-        context.fillStyle = '#fff'; context.font = '800 30px Inter, sans-serif'; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(labels[index], 128, 64);
+        context.fillStyle = '#fff'; context.font = '900 34px Inter, sans-serif'; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(labels[index], 128, 64);
         const card = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthTest: false }));
-        card.scale.set(.7, .35, 1); card.position.set(0, .28, .35); cube.add(card);
+        card.userData.label = labels[index]; card.scale.set(1.05, .52, 1); card.position.set(0, .42, .42); cube.add(card); clickableCards.push(card);
       });
     });
     const canvas = renderer.domElement;
-    const down = (event: PointerEvent) => { dragging = true; lastX = event.clientX; lastY = event.clientY; canvas.setPointerCapture(event.pointerId); };
+    const down = (event: PointerEvent) => { dragging = true; downX = event.clientX; downY = event.clientY; lastX = event.clientX; lastY = event.clientY; canvas.setPointerCapture(event.pointerId); };
     const move = (event: PointerEvent) => { if (!dragging || !model) return; yaw += (event.clientX - lastX) * .01; pitch = Math.max(-1.2, Math.min(1.2, pitch + (event.clientY - lastY) * .01)); lastX = event.clientX; lastY = event.clientY; model.rotation.set(pitch, yaw, 0); };
-    const up = (event: PointerEvent) => { dragging = false; canvas.releasePointerCapture(event.pointerId); };
+    const up = (event: PointerEvent) => {
+      const wasClick = Math.abs(event.clientX - downX) < 6 && Math.abs(event.clientY - downY) < 6;
+      if (wasClick) {
+        const rect = canvas.getBoundingClientRect(); const pointer = new THREE.Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
+        const raycaster = new THREE.Raycaster(); raycaster.setFromCamera(pointer, camera); const hit = raycaster.intersectObjects(clickableCards)[0];
+        if (hit) { const next = window.prompt('Add or edit this cube card:', (hit.object as THREE.Sprite).userData.label || ''); if (next !== null) { (hit.object as THREE.Sprite).userData.label = next; const texture = (hit.object as THREE.Sprite).material.map; if (texture) { const context = (texture.image as HTMLCanvasElement).getContext('2d'); if (context) { context.clearRect(0, 0, 256, 128); context.fillStyle = '#168e9c'; context.fillRect(0, 0, 256, 128); context.fillStyle = '#fff'; context.font = '900 30px Inter, sans-serif'; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(next.slice(0, 16), 128, 64); texture.needsUpdate = true; } } } }
+      }
+      dragging = false; canvas.releasePointerCapture(event.pointerId);
+    };
     canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointerup', up);
     const resize = () => { const s = Math.max(1, Math.min(mount.clientWidth, mount.clientHeight)); renderer.setSize(s, s, false); camera.aspect = 1; camera.updateProjectionMatrix(); };
     const observer = new ResizeObserver(resize); observer.observe(mount); resize();

@@ -2152,6 +2152,9 @@ button:disabled {
 }
 
 :scope .nxe-card-stack { display: none !important; }
+:scope.settings-panel-open .nxe-card-stack { display: block !important; z-index: 30; }
+:scope.settings-panel-open .nxe-menu-card:not(.active) { opacity: .18; pointer-events: none; }
+:scope.settings-panel-open .nxe-menu-card.active { pointer-events: auto; }
 :scope .cosmic-brain-core { pointer-events: auto; }
 .cosmic-brain-canvas { cursor: grab; }
 .cosmic-brain-canvas:active { cursor: grabbing; }

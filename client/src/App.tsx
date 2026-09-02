@@ -1085,7 +1085,7 @@ function App() {
 
   if (!token || !currentUser) {
     return (
-      <div className="app-container" data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties}>
+      <div className={`app-container ${selectedAvatarTheme.id === 'cosmic-mind' && dashboardCards[activeDashboardCard]?.label === 'Settings' ? 'settings-panel-open' : ''}`} data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties}>
         <input ref={avatarInputRef} className="avatar-file-input" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" onChange={handleAvatarUpload} />
         <div className="xbox-shell public-xbox-shell public-nxe-shell">
           <main className="blade-dashboard nxe-dashboard">
@@ -1191,7 +1191,7 @@ function App() {
   }
 
   return (
-    <div className="app-container" data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties} onClick={closeContextMenu}>
+    <div className={`app-container ${selectedAvatarTheme.id === 'cosmic-mind' && publicDashboardCards[activeDashboardCard]?.label === 'Settings' ? 'settings-panel-open' : ''}`} data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties} onClick={closeContextMenu}>
       <input ref={avatarInputRef} className="avatar-file-input" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" onChange={handleAvatarUpload} />
       <div className="titlebar">
         <div className="titlebar-drag-region"></div>

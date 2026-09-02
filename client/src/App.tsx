@@ -265,7 +265,7 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
       return value - Math.floor(value);
     };
     const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-    [-.68, .68].forEach((centerX, hemisphereIndex) => {
+    [-.76, .76].forEach((centerX, hemisphereIndex) => {
       const cubeCount = 148;
       for (let cubeIndex = 0; cubeIndex < cubeCount; cubeIndex += 1) {
         const seed = hemisphereIndex * 211 + cubeIndex + 1;
@@ -274,10 +274,11 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
         const theta = goldenAngle * cubeIndex;
         const size = .16 + seeded(seed + 3) * .055;
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterials[(cubeIndex + hemisphereIndex * 3) % cubeMaterials.length]);
+        const lobeWidth = .92 - Math.max(0, -y) * .2 + Math.max(0, y) * .06;
         cube.position.set(
-          centerX + Math.cos(theta) * circleRadius * 1.02,
-          .1 + y * 1.47,
-          Math.sin(theta) * circleRadius * .88
+          centerX + Math.cos(theta) * circleRadius * lobeWidth,
+          .16 + y * 1.52,
+          Math.sin(theta) * circleRadius * .86
         );
         cube.scale.setScalar(size);
         cube.rotation.set(seeded(seed + 5) * .22, seeded(seed + 7) * .22, seeded(seed + 9) * .22);
@@ -316,8 +317,6 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
     scene.add(key);
 
     let frame = 0;
-    let pointerX = 0;
-    let pointerY = 0;
     let dragging = false;
     let dragX = 0;
     let dragY = 0;
@@ -342,16 +341,13 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
     const onPointerMove = (event: PointerEvent) => {
       if (dragging) {
         brain.rotation.y += (event.clientX - dragX) * .008;
-        brain.rotation.x += (event.clientY - dragY) * .006;
+        brain.rotation.x = Math.max(-.72, Math.min(.72, brain.rotation.x + (event.clientY - dragY) * .006));
         dragX = event.clientX;
         dragY = event.clientY;
       }
-      pointerX = (event.clientX / window.innerWidth - .5) * .55;
-      pointerY = (event.clientY / window.innerHeight - .5) * .25;
     };
     renderer.domElement.addEventListener('pointerdown', onPointerDown);
     renderer.domElement.addEventListener('pointerup', onPointerUp);
-    renderer.domElement.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointermove', onPointerMove);
 
     const resize = () => {
@@ -365,8 +361,7 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
     resize();
 
     const animate = (time: number) => {
-      brain.rotation.y += (pointerX - brain.rotation.y) * .035;
-      brain.rotation.x += (-pointerY - brain.rotation.x) * .035;
+      if (!dragging) brain.rotation.y += .0011;
       brain.position.y = Math.sin(time * .0012) * .09;
       stars.rotation.y = time * .00004;
       frame = requestAnimationFrame(animate);
@@ -380,7 +375,6 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
       window.removeEventListener('pointermove', onPointerMove);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
       renderer.domElement.removeEventListener('pointerup', onPointerUp);
-      renderer.domElement.removeEventListener('pointermove', onPointerMove);
       renderer.dispose();
       scene.traverse((object) => {
         if (object instanceof THREE.Mesh || object instanceof THREE.Points) {

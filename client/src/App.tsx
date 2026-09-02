@@ -886,6 +886,15 @@ function App() {
     }
   ];
 
+  const handleDashboardCardClick = (card: { label: string; action: () => void }, index: number) => {
+    if (selectedAvatarTheme.id === 'cosmic-mind') {
+      if (card.label === 'Settings') setActiveDashboardCard(index);
+      else card.action();
+      return;
+    }
+    index === activeDashboardCard ? card.action() : setActiveDashboardCard(index);
+  };
+
   const dashboardCardCount = currentUser ? dashboardCards.length : publicDashboardCards.length;
 
   useEffect(() => {
@@ -1042,7 +1051,7 @@ function App() {
                           } : {})
                         } as React.CSSProperties}
                         key={card.label}
-                        onClick={() => index === activeDashboardCard ? card.action() : setActiveDashboardCard(index)}
+                        onClick={() => handleDashboardCardClick(card, index)}
                         onKeyDown={(event) => {
                           if (event.key !== 'Enter' && event.key !== ' ') return;
                           event.preventDefault();
@@ -1178,7 +1187,7 @@ function App() {
                               } : {})
                             } as React.CSSProperties}
                             key={card.label}
-                            onClick={() => index === activeDashboardCard ? card.action() : setActiveDashboardCard(index)}
+                            onClick={() => handleDashboardCardClick(card, index)}
                             onKeyDown={(event) => {
                               if (event.key !== 'Enter' && event.key !== ' ') return;
                               event.preventDefault();

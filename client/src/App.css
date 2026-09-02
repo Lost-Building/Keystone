@@ -2405,11 +2405,11 @@ button:disabled {
 
 .nxe-menu-card.active,
 .nxe-menu-only-scene .nxe-menu-card.active {
-  width: clamp(78px, 7.8vw, 108px) !important;
-  height: clamp(78px, 7.8vw, 108px) !important;
+  width: clamp(70px, 7vw, 96px) !important;
+  height: clamp(70px, 7vw, 96px) !important;
   min-height: 0 !important;
   opacity: 1;
-  transform: translate(-50%, -50%) scale(1.04);
+  transform: translate(-50%, -50%);
   border-color: rgba(219, 149, 255, .72) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.48), 12px 14px 0 rgba(2, 14, 45, .78), 0 0 48px rgba(49, 207, 255, .6);
 }

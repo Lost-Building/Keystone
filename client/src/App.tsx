@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import './App.css';
 
 // VERSION RULE: increment SITE_VERSION for every published site update.
-const SITE_VERSION = 'V3';
+const SITE_VERSION = 'V4';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const IS_PUBLIC_DEMO = window.location.hostname.endsWith('github.io') || new URLSearchParams(window.location.search).has('demo');
@@ -918,6 +918,7 @@ function App() {
   const selectAvatarTheme = (themeId: string) => {
     setAvatarTheme(themeId);
     localStorage.setItem(AVATAR_THEME_KEY, themeId);
+    setActiveDashboardCard(0);
   };
 
   const openStore = () => setStoreOpen(true);

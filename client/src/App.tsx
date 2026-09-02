@@ -438,6 +438,16 @@ function WorldModel() {
       model = gltf.scene;
       const bounds = new THREE.Box3().setFromObject(model); const center = bounds.getCenter(new THREE.Vector3()); const size = bounds.getSize(new THREE.Vector3());
       model.position.sub(center); model.scale.setScalar(3.2 / Math.max(size.x, size.y, size.z)); scene.add(model);
+      const labels = ['STORE', 'LIBRARY', 'DEALS', 'AVATAR'];
+      const cubes = model.getObjectsByProperty('type', 'Mesh').slice(0, labels.length) as THREE.Mesh[];
+      cubes.forEach((cube, index) => {
+        const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 128;
+        const context = canvas.getContext('2d'); if (!context) return;
+        context.fillStyle = ['#3a9cff', '#ffad32', '#9db63f', '#2fb4be'][index]; context.fillRect(0, 0, 256, 128);
+        context.fillStyle = '#fff'; context.font = '800 30px Inter, sans-serif'; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(labels[index], 128, 64);
+        const card = new THREE.Mesh(new THREE.PlaneGeometry(.42, .21), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, side: THREE.DoubleSide }));
+        card.position.z = .34; cube.add(card);
+      });
     });
     const canvas = renderer.domElement;
     const down = (event: PointerEvent) => { dragging = true; lastX = event.clientX; lastY = event.clientY; canvas.setPointerCapture(event.pointerId); };

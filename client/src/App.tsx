@@ -434,7 +434,7 @@ function WorldModel() {
     const key = new THREE.PointLight(0x5ce8ff, 18, 20); key.position.set(3, 4, 5); scene.add(key);
     let model: THREE.Object3D | null = null;
     let yaw = 0; let pitch = 0; let dragging = false; let lastX = 0; let lastY = 0; let downX = 0; let downY = 0;
-    const clickableCards: THREE.Sprite[] = [];
+    const clickableCards: THREE.Sprite[] = []; let highlight: THREE.BoxHelper | null = null;
     new GLTFLoader().load('/Keystone/World.glb', (gltf) => {
       model = gltf.scene;
       const bounds = new THREE.Box3().setFromObject(model); const center = bounds.getCenter(new THREE.Vector3()); const size = bounds.getSize(new THREE.Vector3());
@@ -447,12 +447,14 @@ function WorldModel() {
         context.fillStyle = ['#3a9cff', '#ffad32', '#9db63f', '#2fb4be'][index]; context.fillRect(0, 0, 256, 128);
         context.fillStyle = '#fff'; context.font = '900 34px Inter, sans-serif'; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(labels[index], 128, 64);
         const card = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthTest: false }));
-        card.userData.label = labels[index]; card.scale.set(1.05, .52, 1); card.position.set(0, .42, .42); cube.add(card); clickableCards.push(card);
+        card.userData.label = labels[index]; cube.geometry.computeBoundingBox(); const face = cube.geometry.boundingBox?.getSize(new THREE.Vector3()).x || .6; card.scale.set(face * .72, face * .36, 1); card.position.set(0, face * .42, face * .51); cube.add(card); clickableCards.push(card);
       });
     });
     const canvas = renderer.domElement;
     const down = (event: PointerEvent) => { dragging = true; downX = event.clientX; downY = event.clientY; lastX = event.clientX; lastY = event.clientY; canvas.setPointerCapture(event.pointerId); };
     const move = (event: PointerEvent) => { if (!dragging || !model) return; yaw += (event.clientX - lastX) * .01; pitch = Math.max(-1.2, Math.min(1.2, pitch + (event.clientY - lastY) * .01)); lastX = event.clientX; lastY = event.clientY; model.rotation.set(pitch, yaw, 0); };
+    const hover = (event: PointerEvent) => { if (!model || dragging) return; const rect = canvas.getBoundingClientRect(); const pointer = new THREE.Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1); const raycaster = new THREE.Raycaster(); raycaster.setFromCamera(pointer, camera); const hit = raycaster.intersectObjects(model.getObjectsByProperty('type', 'Mesh').filter((object): object is THREE.Mesh => object instanceof THREE.Mesh), false)[0]; if (highlight) { scene.remove(highlight); highlight = null; } if (hit) { highlight = new THREE.BoxHelper(hit.object, 0x66f7ff); highlight.material.linewidth = 3; scene.add(highlight); } };
+    const wheel = (event: WheelEvent) => { event.preventDefault(); camera.position.z = Math.max(3.2, Math.min(13, camera.position.z + event.deltaY * .006)); };
     const up = (event: PointerEvent) => {
       const wasClick = Math.abs(event.clientX - downX) < 6 && Math.abs(event.clientY - downY) < 6;
       if (wasClick) {
@@ -462,11 +464,11 @@ function WorldModel() {
       }
       dragging = false; canvas.releasePointerCapture(event.pointerId);
     };
-    canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointerup', up);
+    canvas.addEventListener('pointerdown', down); canvas.addEventListener('pointermove', move); canvas.addEventListener('pointermove', hover); canvas.addEventListener('pointerup', up); canvas.addEventListener('wheel', wheel, { passive: false });
     const resize = () => { const s = Math.max(1, Math.min(mount.clientWidth, mount.clientHeight)); renderer.setSize(s, s, false); camera.aspect = 1; camera.updateProjectionMatrix(); };
     const observer = new ResizeObserver(resize); observer.observe(mount); resize();
     let frame = 0; const animate = () => { frame = requestAnimationFrame(animate); if (model && !dragging) model.rotation.y += .001; renderer.render(scene, camera); }; animate();
-    return () => { cancelAnimationFrame(frame); observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move); canvas.removeEventListener('pointerup', up); renderer.dispose(); renderer.domElement.remove(); };
+    return () => { cancelAnimationFrame(frame); observer.disconnect(); canvas.removeEventListener('pointerdown', down); canvas.removeEventListener('pointermove', move); canvas.removeEventListener('pointermove', hover); canvas.removeEventListener('pointerup', up); canvas.removeEventListener('wheel', wheel); renderer.dispose(); renderer.domElement.remove(); };
   }, []);
   return <div ref={mountRef} className="cosmic-brain-canvas" aria-label="Interactive World 3D model" />;
 }

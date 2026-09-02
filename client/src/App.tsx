@@ -207,6 +207,21 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
     const brain = new THREE.Group();
     scene.add(brain);
 
+    // Use the authored Blender brain-network asset as the hero backdrop.
+    new GLTFLoader().load('/brain_network.glb', (gltf) => {
+      const authoredBrain = gltf.scene;
+      authoredBrain.name = 'Authored brain network';
+      authoredBrain.scale.setScalar(.42);
+      authoredBrain.position.set(0, -.15, -.55);
+      authoredBrain.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          object.castShadow = false;
+          object.receiveShadow = false;
+        }
+      });
+      scene.add(authoredBrain);
+    });
+
     const nodeLabels = [
       { label: 'STORE', position: [.38, 1.02, .9], color: '#7152d9' },
       { label: 'LIBRARY', position: [.96, .5, .9], color: '#e6932d' },

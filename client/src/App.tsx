@@ -205,18 +205,14 @@ function CosmicBrain3D() {
     const brain = new THREE.Group();
     scene.add(brain);
 
-    const tissue = new THREE.MeshPhysicalMaterial({
-      color: 0x7d37d6,
-      emissive: 0x25086a,
-      emissiveIntensity: 1.8,
-      roughness: 0.32,
-      metalness: 0.08,
-      clearcoat: 0.8,
-      clearcoatRoughness: 0.2
+    const tissue = new THREE.MeshBasicMaterial({
+      color: 0x42dfff,
+      wireframe: true,
+      transparent: true,
+      opacity: .82
     });
     const cyanTissue = tissue.clone();
-    cyanTissue.color.setHex(0x245dca);
-    cyanTissue.emissive.setHex(0x073c74);
+    cyanTissue.color.setHex(0x168dff);
 
     const lobes = [
       [-1.05, .72, .1, .86, 1.1, .78], [-.32, 1.03, .02, .8, .88, .82],
@@ -226,10 +222,16 @@ function CosmicBrain3D() {
       [.35, .15, .42, .86, 1.12, .82], [.88, -.77, .06, .92, .78, .74]
     ];
     lobes.forEach(([x, y, z, sx, sy, sz], index) => {
-      const lobe = new THREE.Mesh(new THREE.IcosahedronGeometry(1, 4), index < 5 ? cyanTissue : tissue);
+      const lobeGeometry = new THREE.IcosahedronGeometry(1, 2);
+      const lobe = new THREE.Mesh(lobeGeometry, index < 5 ? cyanTissue : tissue);
       lobe.position.set(x, y, z);
       lobe.scale.set(sx, sy, sz);
       brain.add(lobe);
+      const neuralPoints = new THREE.Points(
+        lobeGeometry,
+        new THREE.PointsMaterial({ color: index < 5 ? 0x8eeaff : 0xffffff, size: .035, transparent: true, opacity: .95 })
+      );
+      lobe.add(neuralPoints);
     });
 
     const stem = new THREE.Mesh(new THREE.CapsuleGeometry(.33, 1.05, 10, 24), tissue);
@@ -237,9 +239,9 @@ function CosmicBrain3D() {
     stem.rotation.z = -.12;
     brain.add(stem);
 
-    const neuralMaterial = new THREE.MeshBasicMaterial({ color: 0x66e8ff, transparent: true, opacity: .76 });
-    for (let i = 0; i < 14; i += 1) {
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(1.05 + (i % 4) * .14, .018, 8, 80), neuralMaterial);
+    const neuralMaterial = new THREE.MeshBasicMaterial({ color: 0x9af5ff, transparent: true, opacity: .42 });
+    for (let i = 0; i < 9; i += 1) {
+      const ring = new THREE.Mesh(new THREE.TorusGeometry(1.05 + (i % 4) * .14, .009, 6, 64), neuralMaterial);
       ring.rotation.set((i * .73) % Math.PI, (i * 1.17) % Math.PI, (i * .41) % Math.PI);
       ring.position.set((i % 2 ? 1 : -1) * .52, (i % 5 - 2) * .22, .48);
       ring.scale.set(1, .68, .78);
@@ -259,8 +261,8 @@ function CosmicBrain3D() {
     const stars = new THREE.Points(starGeometry, new THREE.PointsMaterial({ color: 0xd8c4ff, size: .055, transparent: true, opacity: .8 }));
     scene.add(stars);
 
-    scene.add(new THREE.HemisphereLight(0xaadfff, 0x170025, 2.5));
-    const rim = new THREE.PointLight(0xff42d0, 22, 15);
+    scene.add(new THREE.HemisphereLight(0xd8f9ff, 0x00142d, 2.5));
+    const rim = new THREE.PointLight(0x16bfff, 22, 15);
     rim.position.set(3, 2, 4);
     scene.add(rim);
     const key = new THREE.PointLight(0x39dfff, 20, 15);
@@ -1030,7 +1032,7 @@ function App() {
                         }}
                       >
                         <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
-                        <strong>{card.label === 'Store' && index === activeDashboardCard ? renderPopularCardContent() : card.label}</strong>
+                        <strong>{card.label === 'Store' && index === activeDashboardCard && selectedAvatarTheme.id !== 'cosmic-mind' ? renderPopularCardContent() : card.label}</strong>
                         {card.label === 'Avatar' && index === activeDashboardCard && renderAvatarControls()}
                         {card.label === 'Settings' && index === activeDashboardCard && renderAvatarThemePicker()}
                       </div>
@@ -1161,7 +1163,7 @@ function App() {
                             }}
                           >
                             <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
-                            <strong>{card.label === 'Store' && index === activeDashboardCard ? renderPopularCardContent() : card.label}</strong>
+                            <strong>{card.label === 'Store' && index === activeDashboardCard && selectedAvatarTheme.id !== 'cosmic-mind' ? renderPopularCardContent() : card.label}</strong>
                             {card.label === 'Avatar' && index === activeDashboardCard && renderAvatarControls()}
                             {card.label === 'Settings' && index === activeDashboardCard && renderAvatarThemePicker()}
                           </div>

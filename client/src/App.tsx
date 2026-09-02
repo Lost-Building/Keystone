@@ -458,8 +458,8 @@ function WorldModel({ onSelect }: { onSelect: (label: string) => void }) {
       const wasClick = Math.abs(event.clientX - downX) < 6 && Math.abs(event.clientY - downY) < 6;
       if (wasClick) {
         const rect = canvas.getBoundingClientRect(); const pointer = new THREE.Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
-        const raycaster = new THREE.Raycaster(); raycaster.setFromCamera(pointer, camera); const hit = raycaster.intersectObjects(clickableCards)[0];
-        if (hit) { const destination = (hit.object as THREE.Mesh).userData.destination; if (destination) { paused = true; entryStart = performance.now(); entryDestination = destination; entryTarget = hit.object; } }
+        const raycaster = new THREE.Raycaster(); raycaster.setFromCamera(pointer, camera); const hit = raycaster.intersectObjects(model ? model.getObjectsByProperty('type', 'Mesh').filter((object): object is THREE.Mesh => object instanceof THREE.Mesh) : [], false)[0];
+        if (hit) { const cube = hit.object; const destination = cube.userData.destination; if (destination) { paused = true; entryStart = performance.now(); entryDestination = destination; entryTarget = cube; } }
       }
       dragging = false; canvas.releasePointerCapture(event.pointerId);
     };

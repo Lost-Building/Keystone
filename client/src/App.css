@@ -2141,6 +2141,9 @@ button:disabled {
 .neural-network-lines,
 .cosmic-zoom-controls { display: none; }
 
+/* The brain-network centerpiece remains visible across saved themes. */
+.app-container:not([data-theme="cosmic-mind"]) .cosmic-brain-core { display: block; }
+
 @scope (.app-container[data-theme="cosmic-mind"]) {
 :scope {
   --void: #03020a;

@@ -205,35 +205,6 @@ function CosmicBrain3D() {
     const brain = new THREE.Group();
     scene.add(brain);
 
-    const tissue = new THREE.MeshBasicMaterial({
-      color: 0x42dfff,
-      wireframe: true,
-      transparent: true,
-      opacity: .82
-    });
-    const cyanTissue = tissue.clone();
-    cyanTissue.color.setHex(0x168dff);
-
-    const lobes = [
-      [-1.05, .72, .1, .86, 1.1, .78], [-.32, 1.03, .02, .8, .88, .82],
-      [-1.22, -.02, .02, .85, 1.08, .78], [-.35, .15, .42, .86, 1.12, .82],
-      [-.88, -.77, .06, .92, .78, .74], [1.05, .72, .1, .86, 1.1, .78],
-      [.32, 1.03, .02, .8, .88, .82], [1.22, -.02, .02, .85, 1.08, .78],
-      [.35, .15, .42, .86, 1.12, .82], [.88, -.77, .06, .92, .78, .74]
-    ];
-    lobes.forEach(([x, y, z, sx, sy, sz], index) => {
-      const lobeGeometry = new THREE.IcosahedronGeometry(1, 2);
-      const lobe = new THREE.Mesh(lobeGeometry, index < 5 ? cyanTissue : tissue);
-      lobe.position.set(x, y, z);
-      lobe.scale.set(sx, sy, sz);
-      brain.add(lobe);
-      const neuralPoints = new THREE.Points(
-        lobeGeometry,
-        new THREE.PointsMaterial({ color: index < 5 ? 0x8eeaff : 0xffffff, size: .035, transparent: true, opacity: .95 })
-      );
-      lobe.add(neuralPoints);
-    });
-
     const cubeGeometry = new THREE.BoxGeometry(1, 1, 1);
     const cubePalette = [0xff4f78, 0xffa21f, 0x3a9cff, 0xd9ed6f, 0x30d6c7, 0xffd16a];
     const cubeMaterials = cubePalette.map((color) => new THREE.MeshPhysicalMaterial({
@@ -247,37 +218,34 @@ function CosmicBrain3D() {
       const value = Math.sin(seed * 9283.17) * 43758.5453;
       return value - Math.floor(value);
     };
-    lobes.forEach(([x, y, z, sx, sy, sz], lobeIndex) => {
-      for (let cubeIndex = 0; cubeIndex < 18; cubeIndex += 1) {
-        const seed = lobeIndex * 31 + cubeIndex * 7 + 1;
-        const theta = seeded(seed) * Math.PI * 2;
-        const phi = Math.acos(2 * seeded(seed + 2) - 1);
-        const radius = .7 + seeded(seed + 4) * .36;
-        const size = .1 + seeded(seed + 6) * .16;
-        const cube = new THREE.Mesh(cubeGeometry, cubeMaterials[(lobeIndex + cubeIndex) % cubeMaterials.length]);
+    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+    [-.68, .68].forEach((centerX, hemisphereIndex) => {
+      const cubeCount = 148;
+      for (let cubeIndex = 0; cubeIndex < cubeCount; cubeIndex += 1) {
+        const seed = hemisphereIndex * 211 + cubeIndex + 1;
+        const y = 1 - (cubeIndex / (cubeCount - 1)) * 2;
+        const circleRadius = Math.sqrt(Math.max(0, 1 - y * y));
+        const theta = goldenAngle * cubeIndex;
+        const size = .16 + seeded(seed + 3) * .055;
+        const cube = new THREE.Mesh(cubeGeometry, cubeMaterials[(cubeIndex + hemisphereIndex * 3) % cubeMaterials.length]);
         cube.position.set(
-          x + Math.sin(phi) * Math.cos(theta) * sx * radius,
-          y + Math.cos(phi) * sy * radius,
-          z + Math.sin(phi) * Math.sin(theta) * sz * radius
+          centerX + Math.cos(theta) * circleRadius * 1.02,
+          .1 + y * 1.47,
+          Math.sin(theta) * circleRadius * .88
         );
         cube.scale.setScalar(size);
-        cube.rotation.set(seeded(seed + 8) * Math.PI, seeded(seed + 9) * Math.PI, seeded(seed + 10) * Math.PI);
+        cube.rotation.set(seeded(seed + 5) * .22, seeded(seed + 7) * .22, seeded(seed + 9) * .22);
         brain.add(cube);
       }
     });
 
-    const stem = new THREE.Mesh(new THREE.CapsuleGeometry(.33, 1.05, 10, 24), tissue);
-    stem.position.set(.1, -1.55, -.08);
-    stem.rotation.z = -.12;
-    brain.add(stem);
-
-    const neuralMaterial = new THREE.MeshBasicMaterial({ color: 0x9af5ff, transparent: true, opacity: .42 });
-    for (let i = 0; i < 9; i += 1) {
-      const ring = new THREE.Mesh(new THREE.TorusGeometry(1.05 + (i % 4) * .14, .009, 6, 64), neuralMaterial);
-      ring.rotation.set((i * .73) % Math.PI, (i * 1.17) % Math.PI, (i * .41) % Math.PI);
-      ring.position.set((i % 2 ? 1 : -1) * .52, (i % 5 - 2) * .22, .48);
-      ring.scale.set(1, .68, .78);
-      brain.add(ring);
+    for (let stemIndex = 0; stemIndex < 16; stemIndex += 1) {
+      const row = Math.floor(stemIndex / 4);
+      const column = stemIndex % 4;
+      const cube = new THREE.Mesh(cubeGeometry, cubeMaterials[(stemIndex + 2) % cubeMaterials.length]);
+      cube.position.set((column - 1.5) * .2, -1.38 - row * .2, (column % 2) * .1 - .05);
+      cube.scale.setScalar(.19);
+      brain.add(cube);
     }
 
     const starGeometry = new THREE.BufferGeometry();

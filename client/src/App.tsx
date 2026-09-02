@@ -1250,7 +1250,7 @@ function App() {
   }
 
   return (
-    <div className={`app-container ${publicDashboardCards[activeDashboardCard]?.label === 'Settings' ? 'settings-panel-open' : ''}`} data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties} onClick={closeContextMenu}>
+    <div className={`app-container ${dashboardCards[activeDashboardCard]?.label === 'Settings' ? 'settings-panel-open' : ''}`} data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties} onClick={closeContextMenu}>
       <input ref={avatarInputRef} className="avatar-file-input" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" onChange={handleAvatarUpload} />
       <div className="titlebar">
         <div className="titlebar-drag-region"></div>

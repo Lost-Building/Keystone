@@ -859,6 +859,47 @@ h1 {
   background: rgba(255,255,255,0.94);
 }
 
+.avatar-theme-picker {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+}
+
+.avatar-theme-label {
+  color: #9aa3a7;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.avatar-theme-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+}
+
+.avatar-theme-row button {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 999px;
+  background: rgba(0,0,0,0.25);
+  cursor: pointer;
+}
+
+.avatar-theme-row button:hover,
+.avatar-theme-row button.active {
+  border-color: var(--avatar-accent, #66fcf1);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--avatar-accent, #66fcf1) 28%, transparent);
+}
+
+.avatar-theme-row i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+}
+
 .avatar-animation-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(66px, 1fr));
@@ -1509,18 +1550,31 @@ button.dashboard-panel:hover,
 }
 
 .avatar-card {
-  background: rgba(11, 12, 16, 0.74);
+  --avatar-card-color: #101a35;
+  --avatar-stage-color: #17274a;
+  --avatar-accent: #32b8ff;
+  --avatar-outfit: #8067ff;
+  background: color-mix(in srgb, var(--avatar-card-color) 88%, transparent);
   border: 1px solid rgba(255, 216, 102, 0.22);
   border-radius: 8px;
   padding: 1.25rem;
   box-shadow: 0 18px 50px rgba(0,0,0,0.38);
 }
 
+.avatar-card[data-theme] { border-color: color-mix(in srgb, var(--avatar-accent) 48%, transparent); }
+.avatar-card[data-theme="cyberpunk"] { --avatar-card-color: #17151f; --avatar-stage-color: #321d3d; --avatar-accent: #00e5ff; --avatar-outfit: #ff3cac; }
+.avatar-card[data-theme="warm-tech"] { --avatar-card-color: #29221d; --avatar-stage-color: #51351f; --avatar-accent: #f4b942; --avatar-outfit: #c98235; }
+.avatar-card[data-theme="ocean-glass"] { --avatar-card-color: #063b4c; --avatar-stage-color: #0a5965; --avatar-accent: #27d7c4; --avatar-outfit: #a7f3d0; }
+.avatar-card[data-theme="royal-purple"] { --avatar-card-color: #241332; --avatar-stage-color: #40205b; --avatar-accent: #c8a2ff; --avatar-outfit: #7138b8; }
+.avatar-card[data-theme="clean-modern"] { --avatar-card-color: #263238; --avatar-stage-color: #455a64; --avatar-accent: #b8e34b; --avatar-outfit: #90caf9; }
+.avatar-card[data-theme="sunset"] { --avatar-card-color: #421c35; --avatar-stage-color: #71334a; --avatar-accent: #ffaa5c; --avatar-outfit: #ff6b6b; }
+.avatar-card[data-theme="forest-premium"] { --avatar-card-color: #102a24; --avatar-stage-color: #1b4a3a; --avatar-accent: #d5a928; --avatar-outfit: #159a72; }
+
 .avatar-stage {
   min-height: 270px;
   border-radius: 8px;
   background:
-    linear-gradient(180deg, rgba(102, 252, 241, 0.12), rgba(11, 12, 16, 0.2)),
+    linear-gradient(180deg, color-mix(in srgb, var(--avatar-accent) 22%, transparent), color-mix(in srgb, var(--avatar-stage-color) 86%, transparent)),
     repeating-linear-gradient(90deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 38px);
   display: grid;
   place-items: end center;
@@ -1618,7 +1672,7 @@ button.dashboard-panel:hover,
   top: 76px;
   width: 108px;
   height: 104px;
-  background: #66fcf1;
+  background: var(--avatar-accent);
   border-radius: 30px 30px 24px 24px;
   box-shadow: inset 0 -18px 0 rgba(0,0,0,0.13);
   z-index: 2;
@@ -1627,7 +1681,7 @@ button.dashboard-panel:hover,
 .avatar-jacket {
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, #2e3144 0 26%, transparent 26% 74%, #2e3144 74%);
+  background: linear-gradient(90deg, var(--avatar-outfit) 0 26%, transparent 26% 74%, var(--avatar-outfit) 74%);
   border-radius: inherit;
 }
 

@@ -10,6 +10,18 @@ const AVATAR_MODEL_DB = 'keystone-avatar-rigs';
 const AVATAR_MODEL_STORE = 'rigs';
 const AVATAR_MODEL_RECORD = 'activeRig';
 const AVATAR_ANIMATION_INDEX_KEY = 'keystoneAvatarRigAnimationIndex';
+const AVATAR_THEME_KEY = 'keystoneAvatarTheme';
+
+const avatarThemes = [
+  { id: 'deep-space', name: 'Deep Space', colors: ['#101A35', '#32B8FF', '#8067FF'], card: '#101A35', stage: '#17274A', accent: '#32B8FF', outfit: '#8067FF' },
+  { id: 'cyberpunk', name: 'Cyberpunk', colors: ['#17151F', '#FF3CAC', '#00E5FF'], card: '#17151F', stage: '#321D3D', accent: '#00E5FF', outfit: '#FF3CAC' },
+  { id: 'warm-tech', name: 'Warm Tech', colors: ['#29221D', '#C98235', '#F4B942'], card: '#29221D', stage: '#51351F', accent: '#F4B942', outfit: '#C98235' },
+  { id: 'ocean-glass', name: 'Ocean Glass', colors: ['#063B4C', '#27D7C4', '#A7F3D0'], card: '#063B4C', stage: '#0A5965', accent: '#27D7C4', outfit: '#A7F3D0' },
+  { id: 'royal-purple', name: 'Royal Purple', colors: ['#241332', '#7138B8', '#C8A2FF'], card: '#241332', stage: '#40205B', accent: '#C8A2FF', outfit: '#7138B8' },
+  { id: 'clean-modern', name: 'Clean Modern', colors: ['#263238', '#90CAF9', '#B8E34B'], card: '#263238', stage: '#455A64', accent: '#B8E34B', outfit: '#90CAF9' },
+  { id: 'sunset', name: 'Sunset', colors: ['#421C35', '#FF6B6B', '#FFAA5C'], card: '#421C35', stage: '#71334A', accent: '#FFAA5C', outfit: '#FF6B6B' },
+  { id: 'forest-premium', name: 'Forest Premium', colors: ['#102A24', '#159A72', '#D5A928'], card: '#102A24', stage: '#1B4A3A', accent: '#D5A928', outfit: '#159A72' }
+];
 const MAX_AVATAR_ANIMATIONS = 5;
 
 const demoUser: CurrentUser = {
@@ -317,6 +329,7 @@ function App() {
     const savedIndex = Number(localStorage.getItem(AVATAR_ANIMATION_INDEX_KEY));
     return Number.isInteger(savedIndex) && savedIndex >= 0 ? savedIndex : 0;
   });
+  const [avatarTheme, setAvatarTheme] = useState(() => localStorage.getItem(AVATAR_THEME_KEY) || 'deep-space');
   const avatarInputRef = useRef<HTMLInputElement>(null);
   
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, item: LibraryItem | null } | null>(null);
@@ -600,6 +613,31 @@ function App() {
     localStorage.setItem(AVATAR_ANIMATION_INDEX_KEY, String(animationIndex));
   };
 
+  const selectAvatarTheme = (themeId: string) => {
+    setAvatarTheme(themeId);
+    localStorage.setItem(AVATAR_THEME_KEY, themeId);
+  };
+
+  const renderAvatarThemePicker = () => (
+    <div className="avatar-theme-picker" aria-label="Avatar card themes">
+      <span className="avatar-theme-label">Card theme</span>
+      <div className="avatar-theme-row">
+        {avatarThemes.map((theme) => (
+          <button
+            type="button"
+            key={theme.id}
+            title={theme.name}
+            aria-label={`Use ${theme.name} theme`}
+            className={theme.id === avatarTheme ? 'active' : ''}
+            onClick={() => selectAvatarTheme(theme.id)}
+          >
+            {theme.colors.map((color) => <i key={color} style={{ backgroundColor: color }} />)}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
   const renderAvatarControls = () => (
     <div className="avatar-card-controls" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
       <button type="button" className="avatar-upload-button" onClick={openAvatarUpload}>
@@ -700,7 +738,7 @@ function App() {
   }, [dashboardCardCount]);
 
   const dashboardAvatar = (
-      <div className={`avatar-card dashboard-avatar-card ${avatarRigUrl ? 'has-rig' : ''}`}>
+      <div className={`avatar-card dashboard-avatar-card ${avatarRigUrl ? 'has-rig' : ''}`} data-theme={avatarTheme}>
       <div className="avatar-stage">
         <div className="avatar-shadow"></div>
         <div className="avatar-actor">
@@ -734,6 +772,7 @@ function App() {
         </div>
         <span className="profile-price">1280G</span>
       </div>
+      {renderAvatarThemePicker()}
     </div>
   );
 

@@ -227,7 +227,8 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
       context.fillStyle = 'rgba(3, 9, 26, .18)';
       context.fillRect(18, 18, 476, 476);
       context.fillStyle = '#ffffff';
-      context.font = '800 54px Inter, sans-serif';
+      const fontSize = label.length > 8 ? 52 : label.length > 6 ? 68 : 96;
+      context.font = `800 ${fontSize}px Inter, sans-serif`;
       context.textAlign = 'center';
       context.textBaseline = 'middle';
       context.shadowColor = 'rgba(0, 0, 0, .75)';
@@ -242,7 +243,7 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
       const frontTexture = makeNodeTexture(label, color);
       const side = new THREE.MeshPhysicalMaterial({ color, roughness: .32, metalness: .12, clearcoat: .7 });
       const front = new THREE.MeshPhysicalMaterial({ color, map: frontTexture || undefined, roughness: .28, metalness: .08, clearcoat: .8 });
-      const node = new THREE.Mesh(new THREE.BoxGeometry(.54, .54, .34), [side, side, side, side, front, side]);
+      const node = new THREE.Mesh(new THREE.BoxGeometry(.22, .22, .2), [side, side, side, side, front, side]);
       node.position.set(position[0], position[1], position[2]);
       node.rotation.set(-.06, 0, position[0] * -.08);
       node.name = label;

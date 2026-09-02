@@ -2143,7 +2143,6 @@ button:disabled {
 .cosmic-zoom-controls { display: none; }
 
 /* The brain-network centerpiece remains visible across saved themes. */
-.app-container:not([data-theme="cosmic-mind"]) .cosmic-brain-core { display: block; }
 .nxe-scene .nxe-card-stack { display: none !important; }
 .settings-panel-open .nxe-scene .nxe-card-stack { display: block !important; }
 

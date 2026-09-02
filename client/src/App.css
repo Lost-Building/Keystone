@@ -2144,6 +2144,7 @@ button:disabled {
 
 /* The brain-network centerpiece remains visible across saved themes. */
 .nxe-scene .nxe-card-stack { display: none !important; }
+.app-container:not([data-theme="cosmic-mind"]) .nxe-scene .nxe-card-stack { display: block !important; }
 .settings-panel-open .nxe-scene .nxe-card-stack { display: block !important; }
 
 @scope (.app-container[data-theme="cosmic-mind"]) {

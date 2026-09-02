@@ -208,12 +208,12 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
     scene.add(brain);
 
     const nodeLabels = [
-      { label: 'STORE', position: [0, 1.38, .82], color: '#7152d9' },
-      { label: 'LIBRARY', position: [1.12, .62, .86], color: '#e6932d' },
-      { label: 'DEVELOPER', position: [1.06, -.62, .84], color: '#d54370' },
-      { label: 'AVATAR', position: [0, -1.36, .86], color: '#2fb4be' },
-      { label: 'DEALS', position: [-1.06, -.62, .84], color: '#9db63f' },
-      { label: 'SETTINGS', position: [-1.12, .62, .86], color: '#8359d4' }
+      { label: 'STORE', position: [.42, 1.22, .84], color: '#7152d9' },
+      { label: 'LIBRARY', position: [1.08, .55, .86], color: '#e6932d' },
+      { label: 'DEVELOPER', position: [1.03, -.52, .84], color: '#d54370' },
+      { label: 'AVATAR', position: [0, -1.08, .86], color: '#2fb4be' },
+      { label: 'DEALS', position: [-1.03, -.52, .84], color: '#9db63f' },
+      { label: 'SETTINGS', position: [-1.08, .55, .86], color: '#8359d4' }
     ];
     const makeNodeTexture = (label: string, color: string) => {
       const canvas = document.createElement('canvas');
@@ -264,33 +264,36 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
       const value = Math.sin(seed * 9283.17) * 43758.5453;
       return value - Math.floor(value);
     };
-    const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-    [-.76, .76].forEach((centerX, hemisphereIndex) => {
-      const cubeCount = 148;
-      for (let cubeIndex = 0; cubeIndex < cubeCount; cubeIndex += 1) {
-        const seed = hemisphereIndex * 211 + cubeIndex + 1;
-        const y = 1 - (cubeIndex / (cubeCount - 1)) * 2;
-        const circleRadius = Math.sqrt(Math.max(0, 1 - y * y));
-        const theta = goldenAngle * cubeIndex;
+    [-.82, .82].forEach((centerX, hemisphereIndex) => {
+      const cubeCount = 170;
+      let cubeIndex = 0;
+      let attempt = 0;
+      while (cubeIndex < cubeCount && attempt < cubeCount * 8) {
+        const seed = hemisphereIndex * 211 + attempt + 1;
+        const localX = (seeded(seed) * 2 - 1) * .72;
+        const localY = (seeded(seed + 2) * 2 - 1) * 1.34;
+        const localZ = (seeded(seed + 4) * 2 - 1) * .82;
+        attempt += 1;
+        if ((localX * localX) / (.72 * .72) + (localY * localY) / (1.34 * 1.34) + (localZ * localZ) / (.82 * .82) > 1) continue;
         const size = .16 + seeded(seed + 3) * .055;
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterials[(cubeIndex + hemisphereIndex * 3) % cubeMaterials.length]);
-        const lobeWidth = .92 - Math.max(0, -y) * .2 + Math.max(0, y) * .06;
         cube.position.set(
-          centerX + Math.cos(theta) * circleRadius * lobeWidth,
-          .16 + y * 1.52,
-          Math.sin(theta) * circleRadius * .86
+          centerX + localX,
+          .12 + localY,
+          localZ
         );
         cube.scale.setScalar(size);
         cube.rotation.set(seeded(seed + 5) * .22, seeded(seed + 7) * .22, seeded(seed + 9) * .22);
         brain.add(cube);
+        cubeIndex += 1;
       }
     });
 
-    for (let stemIndex = 0; stemIndex < 16; stemIndex += 1) {
-      const row = Math.floor(stemIndex / 4);
-      const column = stemIndex % 4;
+    for (let stemIndex = 0; stemIndex < 12; stemIndex += 1) {
+      const row = Math.floor(stemIndex / 2);
+      const column = stemIndex % 2;
       const cube = new THREE.Mesh(cubeGeometry, cubeMaterials[(stemIndex + 2) % cubeMaterials.length]);
-      cube.position.set((column - 1.5) * .2, -1.38 - row * .2, (column % 2) * .1 - .05);
+      cube.position.set((column - .5) * .18, -1.05 - row * .15, .04);
       cube.scale.setScalar(.19);
       brain.add(cube);
     }

@@ -264,22 +264,24 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
       const value = Math.sin(seed * 9283.17) * 43758.5453;
       return value - Math.floor(value);
     };
-    [-.82, .82].forEach((centerX, hemisphereIndex) => {
+    [-.5, .5].forEach((centerX, hemisphereIndex) => {
       const cubeCount = 170;
       let cubeIndex = 0;
       let attempt = 0;
       while (cubeIndex < cubeCount && attempt < cubeCount * 8) {
         const seed = hemisphereIndex * 211 + attempt + 1;
-        const localX = (seeded(seed) * 2 - 1) * .72;
-        const localY = (seeded(seed + 2) * 2 - 1) * 1.34;
-        const localZ = (seeded(seed + 4) * 2 - 1) * .82;
+        const localX = (seeded(seed) * 2 - 1) * .95;
+        const localY = (seeded(seed + 2) * 2 - 1) * 1.02;
+        const localZ = (seeded(seed + 4) * 2 - 1) * .9;
         attempt += 1;
-        if ((localX * localX) / (.72 * .72) + (localY * localY) / (1.34 * 1.34) + (localZ * localZ) / (.82 * .82) > 1) continue;
+        if ((localX * localX) / (.95 * .95) + (localY * localY) / (1.02 * 1.02) + (localZ * localZ) / (.9 * .9) > 1) continue;
+        const worldX = centerX + localX;
+        if (Math.abs(worldX) < .1 && localY > -.65) continue;
         const size = .16 + seeded(seed + 3) * .055;
         const cube = new THREE.Mesh(cubeGeometry, cubeMaterials[(cubeIndex + hemisphereIndex * 3) % cubeMaterials.length]);
         cube.position.set(
-          centerX + localX,
-          .12 + localY,
+          worldX,
+          .16 + localY,
           localZ
         );
         cube.scale.setScalar(size);
@@ -289,11 +291,11 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
       }
     });
 
-    for (let stemIndex = 0; stemIndex < 12; stemIndex += 1) {
+    for (let stemIndex = 0; stemIndex < 8; stemIndex += 1) {
       const row = Math.floor(stemIndex / 2);
       const column = stemIndex % 2;
       const cube = new THREE.Mesh(cubeGeometry, cubeMaterials[(stemIndex + 2) % cubeMaterials.length]);
-      cube.position.set((column - .5) * .18, -1.05 - row * .15, .04);
+      cube.position.set((column - .5) * .16, -.84 - row * .13, .04);
       cube.scale.setScalar(.19);
       brain.add(cube);
     }

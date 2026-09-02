@@ -966,6 +966,15 @@ function App() {
                 <strong>KeyStone LIVE</strong>
               </div>
               <section className="nxe-scene public-nxe-scene">
+                <svg className="neural-network-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
+                  <defs><filter id="neuralGlowPublic"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+                  {[[500,78],[805,205],[790,505],[500,622],[210,505],[195,205]].map(([x,y], index) => (
+                    <g key={`${x}-${y}`}>
+                      <path d={`M 500 350 Q ${500 + (x - 500) * .42} ${350 + (y - 350) * .18} ${x} ${y}`} />
+                      <circle cx={x} cy={y} r="5" style={{ '--pulse-delay': `${index * -.45}s` } as React.CSSProperties} />
+                    </g>
+                  ))}
+                </svg>
                 <div className="cosmic-brain-core" aria-hidden="true">
                   <span className="brain-orbit orbit-one"></span>
                   <span className="brain-orbit orbit-two"></span>
@@ -1105,6 +1114,15 @@ function App() {
                     <strong>KeyStone LIVE</strong>
                   </div>
                   <section className={`nxe-scene nxe-menu-only-scene ${storeOpen ? 'store-open' : ''}`}>
+                    <svg className="neural-network-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
+                      <defs><filter id="neuralGlow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
+                      {[[500,78],[805,205],[790,505],[500,622],[210,505],[195,205]].map(([x,y], index) => (
+                        <g key={`${x}-${y}`}>
+                          <path d={`M 500 350 Q ${500 + (x - 500) * .42} ${350 + (y - 350) * .18} ${x} ${y}`} />
+                          <circle cx={x} cy={y} r="5" style={{ '--pulse-delay': `${index * -.45}s` } as React.CSSProperties} />
+                        </g>
+                      ))}
+                    </svg>
                     <div className="cosmic-brain-core" aria-hidden="true">
                       <span className="brain-orbit orbit-one"></span>
                       <span className="brain-orbit orbit-two"></span>

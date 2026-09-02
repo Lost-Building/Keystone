@@ -2137,7 +2137,8 @@ button:disabled {
 }
 
 /* Cosmic Mind is an optional Settings theme. */
-.cosmic-brain-core { display: none; }
+.cosmic-brain-core,
+.neural-network-lines { display: none; }
 
 @scope (.app-container[data-theme="cosmic-mind"]) {
 :scope {
@@ -2222,6 +2223,35 @@ button:disabled {
   filter: drop-shadow(0 0 48px rgba(88, 104, 255, .34));
 }
 
+.neural-network-lines {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.neural-network-lines path {
+  fill: none;
+  stroke: url(#neuralGradient);
+  stroke: rgba(92, 213, 255, .6);
+  stroke-width: 2;
+  stroke-dasharray: 6 12;
+  filter: url(#neuralGlow);
+  animation: neural-signal 2.2s linear infinite;
+}
+
+.neural-network-lines circle {
+  fill: #fff;
+  filter: drop-shadow(0 0 8px #5ce8ff) drop-shadow(0 0 12px #b65cff);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: neural-node-pulse 1.8s ease-in-out var(--pulse-delay) infinite;
+}
+
 .cosmic-brain-canvas {
   width: 100%;
   height: 100%;
@@ -2283,23 +2313,41 @@ button:disabled {
 
 .nxe-menu-card,
 .nxe-menu-only-scene .nxe-menu-card {
-  --angle: calc(var(--orbit-index) * 60deg - 90deg);
   position: absolute;
-  left: calc(50% + cos(var(--angle)) * min(37vw, 490px));
-  top: calc(50% + sin(var(--angle)) * min(34vh, 275px));
-  width: clamp(132px, 15vw, 210px);
-  min-height: 66px;
-  padding: .85rem 1rem;
+  width: clamp(104px, 10.5vw, 142px) !important;
+  height: clamp(104px, 10.5vw, 142px) !important;
+  min-height: 0 !important;
+  padding: .8rem !important;
   transform: translate(-50%, -50%);
   pointer-events: auto;
   border: 1px solid rgba(154, 111, 255, .28) !important;
-  border-radius: 16px;
+  border-radius: 18px !important;
   color: #eae6ff;
   background: linear-gradient(120deg, rgba(17, 13, 37, .78), rgba(34, 18, 62, .6)) !important;
   box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 12px 35px rgba(0,0,0,.45);
   backdrop-filter: blur(18px);
   opacity: .68;
   transition: transform .35s ease, opacity .35s ease, border-color .35s ease, box-shadow .35s ease;
+  animation: cube-float 4.8s ease-in-out calc(var(--orbit-index) * -.7s) infinite;
+}
+
+.nxe-card-stack .nxe-menu-card:nth-child(1) { left: 50% !important; top: 11% !important; }
+.nxe-card-stack .nxe-menu-card:nth-child(2) { left: 82% !important; top: 30% !important; }
+.nxe-card-stack .nxe-menu-card:nth-child(3) { left: 80% !important; top: 73% !important; }
+.nxe-card-stack .nxe-menu-card:nth-child(4) { left: 50% !important; top: 89% !important; }
+.nxe-card-stack .nxe-menu-card:nth-child(5) { left: 20% !important; top: 73% !important; }
+.nxe-card-stack .nxe-menu-card:nth-child(6) { left: 18% !important; top: 30% !important; }
+
+.nxe-menu-card::after {
+  display: block;
+  content: "";
+  position: absolute;
+  inset: 10px -10px -10px 10px;
+  z-index: -1;
+  border: 1px solid rgba(92, 225, 255, .2);
+  border-radius: inherit;
+  background: rgba(18, 7, 46, .22);
+  transform: translateZ(-1px);
 }
 
 .nxe-menu-card:hover,
@@ -2311,7 +2359,9 @@ button:disabled {
 
 .nxe-menu-card.active,
 .nxe-menu-only-scene .nxe-menu-card.active {
-  min-height: 96px;
+  width: clamp(142px, 14vw, 190px) !important;
+  height: clamp(142px, 14vw, 190px) !important;
+  min-height: 0 !important;
   opacity: 1;
   transform: translate(-50%, -50%) scale(1.12);
   border-color: rgba(219, 149, 255, .72) !important;
@@ -2319,8 +2369,7 @@ button:disabled {
   box-shadow: 0 0 38px rgba(156, 70, 255, .3), inset 0 1px 0 rgba(255,255,255,.15);
 }
 
-.nxe-menu-card::before,
-.nxe-menu-card::after { display: none; }
+.nxe-menu-card::before { display: none; }
 
 .nxe-menu-card strong,
 .nxe-menu-only-scene .nxe-menu-card strong {
@@ -2350,17 +2399,18 @@ button:disabled {
 @keyframes galaxy-drift { to { transform: rotate(360deg); } }
 @keyframes orbit-spin { to { transform: rotate(342deg) scaleY(.48); } }
 @keyframes orbit-spin-reverse { to { transform: rotate(-378deg) scaleY(.58); } }
+@keyframes neural-signal { to { stroke-dashoffset: -36; } }
+@keyframes neural-node-pulse { 50% { transform: scale(2.2); opacity: .5; } }
+@keyframes cube-float { 50% { margin-top: -10px; } }
 
 @media (max-width: 760px) {
   .nxe-scene, .public-nxe-scene, .nxe-menu-only-scene { min-height: 760px; overflow-y: auto; }
   .cosmic-brain-core { top: 38%; width: min(82vw, 390px); }
   .nxe-menu-card, .nxe-menu-only-scene .nxe-menu-card {
-    --angle: calc(var(--orbit-index) * 60deg - 90deg);
-    left: calc(50% + cos(var(--angle)) * 39vw);
-    top: calc(38% + sin(var(--angle)) * 29vh);
-    width: 118px;
-    min-height: 58px;
-    padding: .65rem;
+    width: 94px !important;
+    height: 94px !important;
+    min-height: 0 !important;
+    padding: .55rem !important;
   }
   .nxe-menu-card.active, .nxe-menu-only-scene .nxe-menu-card.active { transform: translate(-50%, -50%) scale(1.04); }
   .public-signin-card { top: 560px; bottom: auto; left: 50%; transform: translateX(-50%); }

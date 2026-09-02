@@ -444,7 +444,6 @@ function WorldModel() {
       cubes.forEach((cube, index) => {
         const canvas = document.createElement('canvas'); canvas.width = 256; canvas.height = 128;
         const context = canvas.getContext('2d'); if (!context) return;
-        context.fillStyle = ['#3a9cff', '#ffad32', '#9db63f', '#2fb4be'][index]; context.fillRect(0, 0, 256, 128);
         context.fillStyle = '#050505'; context.font = '900 34px Inter, sans-serif'; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(labels[index], 128, 64);
         const card = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), transparent: true, depthTest: false }));
         card.userData.label = labels[index]; cube.geometry.computeBoundingBox(); const face = cube.geometry.boundingBox?.getSize(new THREE.Vector3()).x || .6; card.scale.set(face * .72, face * .36, 1); card.position.set(0, 0, face * .51); cube.add(card); clickableCards.push(card);
@@ -460,7 +459,7 @@ function WorldModel() {
       if (wasClick) {
         const rect = canvas.getBoundingClientRect(); const pointer = new THREE.Vector2(((event.clientX - rect.left) / rect.width) * 2 - 1, -((event.clientY - rect.top) / rect.height) * 2 + 1);
         const raycaster = new THREE.Raycaster(); raycaster.setFromCamera(pointer, camera); const hit = raycaster.intersectObjects(clickableCards)[0];
-        if (hit) { paused = true; const next = window.prompt('Add or edit this cube card:', (hit.object as THREE.Sprite).userData.label || ''); if (next !== null) { (hit.object as THREE.Sprite).userData.label = next; const texture = (hit.object as THREE.Sprite).material.map; if (texture) { const context = (texture.image as HTMLCanvasElement).getContext('2d'); if (context) { context.clearRect(0, 0, 256, 128); context.fillStyle = '#168e9c'; context.fillRect(0, 0, 256, 128); context.fillStyle = '#050505'; context.font = '900 30px Inter, sans-serif'; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(next.slice(0, 16), 128, 64); texture.needsUpdate = true; } } } }
+        if (hit) { paused = true; const next = window.prompt('Add or edit this cube card:', (hit.object as THREE.Sprite).userData.label || ''); if (next !== null) { (hit.object as THREE.Sprite).userData.label = next; const texture = (hit.object as THREE.Sprite).material.map; if (texture) { const context = (texture.image as HTMLCanvasElement).getContext('2d'); if (context) { context.clearRect(0, 0, 256, 128); context.fillStyle = '#050505'; context.font = '900 30px Inter, sans-serif'; context.textAlign = 'center'; context.textBaseline = 'middle'; context.fillText(next.slice(0, 16), 128, 64); texture.needsUpdate = true; } } } }
       }
       dragging = false; canvas.releasePointerCapture(event.pointerId);
     };

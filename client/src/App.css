@@ -380,6 +380,7 @@ h1 {
 .nxe-titlebar strong {
   color: #f7fff1;
 }
+.site-version { margin-left: auto; color: #66f7ff; font-size: .78rem; letter-spacing: .12em; text-shadow: 0 0 12px #66f7ff; }
 
 .nxe-dashboard .game-feature-tile,
 .nxe-dashboard .blade-tile,

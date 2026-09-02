@@ -3,6 +3,9 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import './App.css';
 
+// VERSION RULE: increment SITE_VERSION for every published site update.
+const SITE_VERSION = 'V1';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const IS_PUBLIC_DEMO = window.location.hostname.endsWith('github.io') || new URLSearchParams(window.location.search).has('demo');
 const DEMO_TOKEN = 'keystone-public-demo-token';
@@ -1153,6 +1156,7 @@ function App() {
               <div className="blade-titlebar nxe-titlebar">
                 <span>Sign In</span>
                 <strong>KeyStone LIVE</strong>
+                <b className="site-version">{SITE_VERSION}</b>
               </div>
               <section
                 className="nxe-scene public-nxe-scene"
@@ -1306,6 +1310,7 @@ function App() {
                   <div className="blade-titlebar nxe-titlebar">
                     <span>{currentUser.username}</span>
                     <strong>KeyStone LIVE</strong>
+                    <b className="site-version">{SITE_VERSION}</b>
                   </div>
                   <section
                     className={`nxe-scene nxe-menu-only-scene ${storeOpen ? 'store-open' : ''}`}

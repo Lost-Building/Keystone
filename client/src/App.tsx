@@ -14,6 +14,7 @@ const AVATAR_THEME_KEY = 'keystoneAvatarTheme';
 
 const avatarThemes = [
   { id: 'original', name: 'Original', colors: ['#5f9f28', '#b1ff57', '#d5ff41'], card: '#5f9f28', stage: '#9dce70', accent: '#b1ff57', outfit: '#d5ff41' },
+  { id: 'cosmic-mind', name: 'Cosmic Mind', colors: ['#03020A', '#6D35D8', '#46DFFF'], card: '#08041A', stage: '#130B31', accent: '#8E5CFF', outfit: '#46DFFF' },
   { id: 'deep-space', name: 'Deep Space', colors: ['#101A35', '#32B8FF', '#8067FF'], card: '#101A35', stage: '#17274A', accent: '#32B8FF', outfit: '#8067FF' },
   { id: 'cyberpunk', name: 'Cyberpunk', colors: ['#17151F', '#FF3CAC', '#00E5FF'], card: '#17151F', stage: '#321D3D', accent: '#00E5FF', outfit: '#FF3CAC' },
   { id: 'warm-tech', name: 'Warm Tech', colors: ['#29221D', '#C98235', '#F4B942'], card: '#29221D', stage: '#51351F', accent: '#F4B942', outfit: '#C98235' },

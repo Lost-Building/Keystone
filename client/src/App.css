@@ -2136,8 +2136,11 @@ button:disabled {
   }
 }
 
-/* Cosmic mind hub */
-.app-container {
+/* Cosmic Mind is an optional Settings theme. */
+.cosmic-brain-core { display: none; }
+
+@scope (.app-container[data-theme="cosmic-mind"]) {
+:scope {
   --void: #03020a;
   background:
     radial-gradient(circle at 50% 46%, rgba(91, 38, 162, 0.2), transparent 28%),
@@ -2207,6 +2210,7 @@ button:disabled {
 }
 
 .cosmic-brain-core {
+  display: block;
   position: absolute;
   left: 50%;
   top: 50%;
@@ -2364,4 +2368,5 @@ button:disabled {
 
 @media (prefers-reduced-motion: reduce) {
   .cosmic-brain-core img, .brain-orbit, .nxe-scene::before { animation: none !important; }
+}
 }

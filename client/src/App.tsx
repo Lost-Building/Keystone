@@ -1255,6 +1255,7 @@ function App() {
       <div className="titlebar">
         <div className="titlebar-drag-region"></div>
         <div className="titlebar-controls">
+          <span className="site-version">{SITE_VERSION}</span>
           <button onClick={logout}>Logout</button>
         </div>
       </div>

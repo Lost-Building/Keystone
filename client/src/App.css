@@ -2146,6 +2146,29 @@ button:disabled {
 .nxe-scene .nxe-card-stack { display: none !important; }
 .app-container:not([data-theme="cosmic-mind"]) .nxe-scene .nxe-card-stack { display: block !important; }
 .settings-panel-open .nxe-scene .nxe-card-stack { display: block !important; }
+.settings-panel-open .nxe-scene .nxe-card-stack .nxe-menu-card { display: none !important; }
+.settings-panel-open .nxe-scene .nxe-card-stack .nxe-menu-card.active {
+  display: flex !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  padding: 0 !important;
+  align-items: center;
+  justify-content: center;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  animation: none !important;
+}
+.settings-panel-open .avatar-theme-picker {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 120 !important;
+}
 
 @scope (.app-container[data-theme="cosmic-mind"]) {
 :scope {

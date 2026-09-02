@@ -2306,7 +2306,10 @@ button:disabled {
   width: 100%;
   height: 100%;
   animation: brain-breathe 6s ease-in-out infinite;
+  cursor: grab;
+  touch-action: none;
 }
+.cosmic-brain-canvas:active { cursor: grabbing; }
 
 .cosmic-brain-canvas canvas { display: block; width: 100% !important; height: 100% !important; }
 

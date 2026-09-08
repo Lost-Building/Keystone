@@ -629,6 +629,101 @@ function WorldModel({ onSelect }: { onSelect: (label: string) => void }) {
 // CSS-rendered orbital core.
 void WorldModel;
 
+function OrbitalCrystal() {
+  const mountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return;
+    let frameId = 0;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(34, 1, .1, 100);
+    camera.position.set(0, 0, 8.1);
+    const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    renderer.setClearColor(0x000000, 0);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.35;
+    mount.appendChild(renderer.domElement);
+
+    const assembly = new THREE.Group();
+    scene.add(assembly);
+    const shell = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.4, 1),
+      new THREE.MeshPhysicalMaterial({ color: 0x83e8ff, emissive: 0x14195f, emissiveIntensity: .72, metalness: .12, roughness: .04, transmission: .72, thickness: .72, transparent: true, opacity: .64, clearcoat: 1 })
+    );
+    shell.scale.set(1, 1.13, .9);
+    assembly.add(shell);
+    const wire = new THREE.LineSegments(
+      new THREE.EdgesGeometry(shell.geometry, 16),
+      new THREE.LineBasicMaterial({ color: 0xc9f7ff, transparent: true, opacity: .58 })
+    );
+    wire.scale.copy(shell.scale);
+    assembly.add(wire);
+    const core = new THREE.Mesh(
+      new THREE.OctahedronGeometry(.68, 0),
+      new THREE.MeshPhysicalMaterial({ color: 0xff719c, emissive: 0xff266f, emissiveIntensity: 2.5, roughness: .16, metalness: .28, clearcoat: 1 })
+    );
+    assembly.add(core);
+
+    const shardGeometry = new THREE.TetrahedronGeometry(.17, 0);
+    const shards: THREE.Mesh[] = [];
+    for (let index = 0; index < 9; index += 1) {
+      const shard = new THREE.Mesh(shardGeometry, new THREE.MeshPhysicalMaterial({ color: index % 2 ? 0x9b72ff : 0x61e8ff, emissive: index % 2 ? 0x35106f : 0x074b73, emissiveIntensity: 1.3, metalness: .35, roughness: .2 }));
+      shard.userData.angle = (index / 9) * Math.PI * 2;
+      shard.userData.radius = 2.02 + (index % 3) * .14;
+      shard.userData.speed = .32 + (index % 4) * .045;
+      shards.push(shard);
+      assembly.add(shard);
+    }
+
+    const particleCount = 90;
+    const particlePositions = new Float32Array(particleCount * 3);
+    for (let index = 0; index < particleCount; index += 1) {
+      const angle = (index / particleCount) * Math.PI * 2 * 3.7;
+      const radius = 1.8 + (index % 11) * .075;
+      particlePositions[index * 3] = Math.cos(angle) * radius;
+      particlePositions[index * 3 + 1] = Math.sin(angle) * radius * .48;
+      particlePositions[index * 3 + 2] = (Math.sin(index * 2.17) * .7);
+    }
+    const particleGeometry = new THREE.BufferGeometry();
+    particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    const particles = new THREE.Points(particleGeometry, new THREE.PointsMaterial({ color: 0x87eaff, size: .035, transparent: true, opacity: .72, blending: THREE.AdditiveBlending, depthWrite: false }));
+    assembly.add(particles);
+    scene.add(new THREE.HemisphereLight(0xbcefff, 0x210735, 2.6));
+    const coralLight = new THREE.PointLight(0xff477e, 18, 10); coralLight.position.set(-2, -.7, 2.5); scene.add(coralLight);
+    const cyanLight = new THREE.PointLight(0x47dfff, 22, 10); cyanLight.position.set(2.2, 1.5, 2.8); scene.add(cyanLight);
+
+    const pointer = new THREE.Vector2();
+    const onPointerMove = (event: PointerEvent) => {
+      const rect = mount.getBoundingClientRect();
+      pointer.set(((event.clientX - rect.left) / rect.width - .5) * 2, -((event.clientY - rect.top) / rect.height - .5) * 2);
+    };
+    mount.addEventListener('pointermove', onPointerMove);
+    const resize = () => { const width = Math.max(1, mount.clientWidth); const height = Math.max(1, mount.clientHeight); renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix(); };
+    const observer = new ResizeObserver(resize); observer.observe(mount); resize();
+    const clock = new THREE.Clock();
+    const animate = () => {
+      const time = clock.getElapsedTime();
+      assembly.rotation.y += ((pointer.x * .24 + time * .16) - assembly.rotation.y) * .025;
+      assembly.rotation.x += ((-pointer.y * .16 + Math.sin(time * .55) * .08) - assembly.rotation.x) * .035;
+      shell.rotation.z = Math.sin(time * .42) * .16;
+      wire.rotation.z = -time * .1;
+      core.rotation.x = time * .72; core.rotation.y = time * .94;
+      core.scale.setScalar(1 + Math.sin(time * 2.2) * .08);
+      particles.rotation.z = time * .09; particles.rotation.y = -time * .05;
+      shards.forEach((shard, index) => { const angle = shard.userData.angle + time * shard.userData.speed; const radius = shard.userData.radius; shard.position.set(Math.cos(angle) * radius, Math.sin(angle) * radius * .52, Math.sin(angle * 2 + index) * .6); shard.rotation.set(time * .7 + index, time * .9, angle); });
+      renderer.render(scene, camera);
+      frameId = requestAnimationFrame(animate);
+    };
+    animate();
+    return () => { cancelAnimationFrame(frameId); observer.disconnect(); mount.removeEventListener('pointermove', onPointerMove); renderer.dispose(); shell.geometry.dispose(); wire.geometry.dispose(); core.geometry.dispose(); shardGeometry.dispose(); particleGeometry.dispose(); mount.removeChild(renderer.domElement); };
+  }, []);
+
+  return <div className="orbital-crystal-canvas" ref={mountRef} aria-hidden="true" />;
+}
+
 function AvatarRigViewer({
   modelUrl,
   selectedClipIndex,
@@ -1588,7 +1683,7 @@ function App() {
                 <div className="orbital-copy"><span>ORBITAL HUB</span><h1>Your games.<br/>One universe.</h1><p>Discover new worlds, build your library, and make a place of your own.</p></div>
                 <div className="orbital-system" aria-label="KeyStone navigation">
                   <div className="orbital-track track-outer"></div><div className="orbital-track track-inner"></div>
-                  <div className="keystone-core" aria-hidden="true"><i></i><i></i><i></i><span></span></div>
+                  <div className="keystone-core"><OrbitalCrystal/><span className="core-aura"></span></div>
                   {publicDashboardCards.map((card, index) => <button key={card.label} className={`orbit-node node-${index}`} onClick={() => card.label === 'Settings' ? setActiveDashboardCard(index) : card.action()}><OrbitalIcon kind={card.icon}/><span>{card.label}</span></button>)}
                 </div>
                 <div className="orbital-discovery"><span>DISCOVER NEW WORLDS</span>{popularGames.slice(0,3).map((game, index) => <button key={game.title} onClick={enterPublicDemo}><img src={game.image}/><div><strong>{game.title}</strong><small>{['Explore the unknown','A legend awakens','Race beyond light'][index]}</small></div></button>)}</div>
@@ -1695,7 +1790,7 @@ function App() {
                     </div>
                     <div className="orbital-system" aria-label="KeyStone navigation">
                       <div className="orbital-track track-outer"></div><div className="orbital-track track-inner"></div>
-                      <div className="keystone-core" aria-hidden="true"><i></i><i></i><i></i><span></span></div>
+                      <div className="keystone-core"><OrbitalCrystal/><span className="core-aura"></span></div>
                       {dashboardCards.map((card, index) => <button key={card.label} className={`orbit-node node-${index} ${index === activeDashboardCard ? 'active' : ''}`} onClick={() => { setActiveDashboardCard(index); if(card.label !== 'Settings') card.action(); }}><OrbitalIcon kind={card.icon}/><span>{card.label}</span></button>)}
                     </div>
                     <div className="orbital-discovery"><span>DISCOVER NEW WORLDS</span>{popularGames.slice(0,3).map((game, index) => <button key={game.title} onClick={openStore}><img src={game.image}/><div><strong>{game.title}</strong><small>{['Explore the unknown','A legend awakens','Race beyond light'][index]}</small></div></button>)}</div>

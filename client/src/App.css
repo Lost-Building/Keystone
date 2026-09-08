@@ -61,7 +61,9 @@
 .keystone-core i { position:absolute; inset:12%; clip-path:polygon(50% 0,100% 36%,82% 100%,18% 100%,0 36%); background:linear-gradient(145deg,rgba(124,245,255,.92),rgba(122,83,255,.62) 45%,rgba(255,122,150,.82)); background-size:220% 220%; border-radius:18%; animation:facet-shimmer 6s ease-in-out infinite; }
 .keystone-core i:nth-child(2) { inset:24%; background:linear-gradient(160deg,rgba(255,255,255,.85),rgba(68,213,255,.15)); animation:facet-counterturn 9s ease-in-out infinite; }
 .keystone-core i:nth-child(3) { inset:34%; background:linear-gradient(145deg,#ff94a7,#7664ff); animation:facet-pulse 4.5s ease-in-out infinite; }
-.keystone-core span { position:absolute; inset:3%; border:1px solid rgba(255,255,255,.38); clip-path:polygon(50% 0,100% 36%,82% 100%,18% 100%,0 36%); animation:facet-outline 3.6s ease-in-out infinite; }
+.orbital-crystal-canvas { position:absolute; left:50%; top:50%; width:178%; height:178%; transform:translate(-50%,-50%); cursor:crosshair; }
+.orbital-crystal-canvas canvas { display:block; width:100%; height:100%; filter:drop-shadow(0 0 18px rgba(69,214,255,.7)) drop-shadow(0 0 36px rgba(126,73,255,.38)); }
+.keystone-core .core-aura { position:absolute; inset:-9%; z-index:-1; border:1px solid rgba(112,231,255,.3); border-radius:50%; background:radial-gradient(circle,rgba(255,106,151,.2),rgba(95,105,255,.08) 43%,transparent 68%); box-shadow:0 0 42px rgba(81,204,255,.18),inset 0 0 38px rgba(130,80,255,.14); animation:facet-outline 3.6s ease-in-out infinite; }
 .orbit-node { position:absolute; display:grid; place-items:center; gap:5px; width:86px; padding:0; color:#dceeff; border:0; background:transparent; cursor:pointer; transform:translate(-50%,-50%); }
 .orbit-node::before { content:""; grid-area:1/1; width:58px; height:58px; border:1px solid rgba(117,229,255,.58); border-radius:50%; background:rgba(6,21,44,.88); box-shadow:0 0 18px rgba(60,188,255,.2),inset 0 0 18px rgba(91,183,255,.12); transition:.25s ease; }
 .orbit-node:hover::before,.orbit-node.active::before { transform:scale(1.12); border-color:#fff; box-shadow:0 0 25px rgba(76,216,255,.6),inset 0 0 16px rgba(255,121,148,.18); }

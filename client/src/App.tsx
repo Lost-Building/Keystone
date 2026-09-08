@@ -612,6 +612,10 @@ function WorldModel({ onSelect }: { onSelect: (label: string) => void }) {
   return <div ref={mountRef} className="cosmic-brain-canvas" aria-label="Interactive World 3D model" />;
 }
 
+// Retained as an optional 3D scene module while the dashboard uses the lighter
+// CSS-rendered orbital core.
+void WorldModel;
+
 function AvatarRigViewer({
   modelUrl,
   selectedClipIndex,
@@ -1529,6 +1533,17 @@ function App() {
     </div>
   );
 
+  // Legacy dashboard helpers remain available for theme experiments without
+  // participating in the current Orbital Hub render path.
+  void renderPopularCardContent;
+  void renderAvatarControls;
+  void handleDashboardCardClick;
+  void handleDashboardPointerDown;
+  void handleDashboardPointerUp;
+  void handleDashboardWheel;
+  void dashboardNavigation;
+  void dashboardAvatar;
+  void cosmicZoomControls;
   const isSettingsOpen = activeDashboardCards[activeDashboardCard]?.label === 'Settings';
   const appContainerClass = `app-container ${selectedAvatarTheme.id === 'cosmic-mind' && isSettingsOpen ? 'settings-panel-open' : ''} ${dashboardBackgroundUrl ? 'has-custom-dashboard-background' : ''}`;
   const dashboardPageStyle = {
@@ -1555,31 +1570,16 @@ function App() {
                 <strong>KeyStone LIVE</strong>
                 <b className="site-version">{SITE_VERSION}</b>
               </div>
-              <section
-                className="nxe-scene public-nxe-scene"
-                style={{ '--cosmic-zoom': cosmicZoom } as React.CSSProperties}
-                onWheel={handleDashboardWheel}
-                onPointerDown={handleDashboardPointerDown}
-                onPointerUp={handleDashboardPointerUp}
-              >
-                {cosmicZoomControls}
-                <div className="nxe-breadcrumbs" aria-label="Current section"><span>Inside KeyStone</span><span>Friends</span><span>Video Marketplace</span><strong>Game Marketplace</strong><b>My KeyStone</b></div>
-                <svg className="neural-network-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
-                  <defs><filter id="neuralGlowPublic"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-                  {[[500,78],[805,205],[790,505],[500,622],[210,505],[195,205]].map(([x,y], index) => (
-                    <g key={`${x}-${y}`}>
-                      <path d={`M 500 350 Q ${500 + (x - 500) * .42} ${350 + (y - 350) * .18} ${x} ${y}`} />
-                      <circle cx={x} cy={y} r="5" style={{ '--pulse-delay': `${index * -.45}s` } as React.CSSProperties} />
-                    </g>
-                  ))}
-                </svg>
-                <div className="cosmic-brain-core" aria-hidden="true">
-                  <span className="brain-orbit orbit-one"></span>
-                  <span className="brain-orbit orbit-two"></span>
-                  <WorldModel onSelect={handleCosmicNodeSelect} />
-                  <span className="brain-core-label">THE EVERYTHING</span>
+              <section className="orbital-hub public-orbital-hub">
+                <header className="orbital-header"><div className="keystone-brand"><i aria-hidden="true"></i><div><strong>KeyStone</strong><span>Play a brighter tomorrow</span></div></div><b>{SITE_VERSION}</b></header>
+                <div className="orbital-copy"><span>ORBITAL HUB</span><h1>Your games.<br/>One universe.</h1><p>Discover new worlds, build your library, and make a place of your own.</p></div>
+                <div className="orbital-system" aria-label="KeyStone navigation">
+                  <div className="orbital-track track-outer"></div><div className="orbital-track track-inner"></div>
+                  <div className="keystone-core" aria-hidden="true"><i></i><i></i><i></i><span></span></div>
+                  {publicDashboardCards.map((card, index) => <button key={card.label} className={`orbit-node node-${index}`} onClick={() => card.label === 'Settings' ? setActiveDashboardCard(index) : card.action()}><i className={`orbit-icon icon-${card.icon}`}></i><span>{card.label}</span></button>)}
                 </div>
-                <div className="nxe-profile-card public-signin-card">
+                <div className="orbital-discovery"><span>DISCOVER NEW WORLDS</span>{popularGames.slice(0,3).map((game, index) => <button key={game.title} onClick={enterPublicDemo}><img src={game.image}/><div><strong>{game.title}</strong><small>{['Explore the unknown','A legend awakens','Race beyond light'][index]}</small></div></button>)}</div>
+                <div className="orbital-auth-panel">
                   <form className="nxe-signin-form" onSubmit={handleAuthSubmit}>
                     <strong>KeyStone Profile</strong>
                     <div className="auth-tabs">
@@ -1595,50 +1595,6 @@ function App() {
                     <button type="submit" className="btn-primary">{authMode === 'login' ? 'Sign In' : 'Create Profile'}</button>
                   </form>
                 </div>
-
-                <div className="nxe-avatar-stand">
-                  {dashboardAvatar}
-                </div>
-
-                <div className="nxe-card-stack" aria-label="Dashboard menu">
-                  {publicDashboardCards.map((card, index) => {
-                    const offset = (index - activeDashboardCard + publicDashboardCards.length) % publicDashboardCards.length;
-                    return (
-                      <div
-                        role="button"
-                        tabIndex={0}
-                        className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Store' && index === activeDashboardCard ? 'store-popular-card' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''} ${card.label === 'Settings' && index === activeDashboardCard ? 'settings-controls-open' : ''}`}
-                        style={{
-                          '--card-offset': offset,
-                          '--card-depth': Math.abs(offset),
-                          '--card-direction': 1,
-                          '--orbit-index': index,
-                          zIndex: 20 - offset,
-                          ...(card.label === 'Settings' && index === activeDashboardCard ? {
-                            background: selectedAvatarTheme.card,
-                            borderColor: selectedAvatarTheme.accent,
-                            color: '#ffffff'
-                          } : {})
-                        } as React.CSSProperties}
-                        key={card.label}
-                        onClick={() => handleDashboardCardClick(card, index)}
-                        onKeyDown={(event) => {
-                          if (event.key !== 'Enter' && event.key !== ' ') return;
-                          event.preventDefault();
-                          index === activeDashboardCard ? card.action() : setActiveDashboardCard(index);
-                        }}
-                      >
-                        <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
-                        {card.label === 'Store' && index === activeDashboardCard && selectedAvatarTheme.id !== 'cosmic-mind' ? renderPopularCardContent() : <strong>{card.label}</strong>}
-                        {card.label === 'Avatar' && index === activeDashboardCard && renderAvatarControls()}
-                        {card.label === 'Settings' && index === activeDashboardCard && renderDashboardSettings()}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {dashboardNavigation}
-
               </section>
             </section>
             <aside className="blade-rail right-blades" aria-label="Right blades">
@@ -1718,72 +1674,16 @@ function App() {
                     <strong>KeyStone LIVE</strong>
                     <b className="site-version">{SITE_VERSION}</b>
                   </div>
-                  <section
-                    className={`nxe-scene nxe-menu-only-scene ${storeOpen ? 'store-open' : ''}`}
-                    style={{ '--cosmic-zoom': cosmicZoom } as React.CSSProperties}
-                    onWheel={handleDashboardWheel}
-                    onPointerDown={handleDashboardPointerDown}
-                    onPointerUp={handleDashboardPointerUp}
-                  >
-                    {cosmicZoomControls}
-                    <div className="nxe-breadcrumbs" aria-label="Current section"><span>Inside KeyStone</span><span>Friends</span><span>Video Marketplace</span><strong>Game Marketplace</strong><b>My KeyStone</b></div>
-                    <div className="nxe-player-summary"><strong>{currentUser.username}</strong><span>Online</span><i aria-hidden="true"></i></div>
-                    <svg className="neural-network-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
-                      <defs><filter id="neuralGlow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-                      {[[500,78],[805,205],[790,505],[500,622],[210,505],[195,205]].map(([x,y], index) => (
-                        <g key={`${x}-${y}`}>
-                          <path d={`M 500 350 Q ${500 + (x - 500) * .42} ${350 + (y - 350) * .18} ${x} ${y}`} />
-                          <circle cx={x} cy={y} r="5" style={{ '--pulse-delay': `${index * -.45}s` } as React.CSSProperties} />
-                        </g>
-                      ))}
-                    </svg>
-                    <div className="cosmic-brain-core" aria-hidden="true">
-                      <span className="brain-orbit orbit-one"></span>
-                      <span className="brain-orbit orbit-two"></span>
-                      <WorldModel onSelect={handleCosmicNodeSelect} />
-                      <span className="brain-core-label">THE EVERYTHING</span>
+                  <section className={`orbital-hub ${storeOpen ? 'store-open' : ''}`}>
+                    <header className="orbital-header"><div className="keystone-brand"><i aria-hidden="true"></i><div><strong>KeyStone</strong><span>Play a brighter tomorrow</span></div></div><div className="orbital-user"><span>ONLINE</span><strong>{currentUser.username}</strong></div></header>
+                    <div className="orbital-copy"><span>ORBITAL HUB</span><h1>Welcome back,<br/>{currentUser.username}.</h1><p>Your collection and creator tools, aligned in one universe.</p></div>
+                    <div className="orbital-system" aria-label="KeyStone navigation">
+                      <div className="orbital-track track-outer"></div><div className="orbital-track track-inner"></div>
+                      <div className="keystone-core" aria-hidden="true"><i></i><i></i><i></i><span></span></div>
+                      {dashboardCards.map((card, index) => <button key={card.label} className={`orbit-node node-${index} ${index === activeDashboardCard ? 'active' : ''}`} onClick={() => { setActiveDashboardCard(index); if(card.label !== 'Settings') card.action(); }}><i className={`orbit-icon icon-${card.icon}`}></i><span>{card.label}</span></button>)}
                     </div>
-                    <div className="nxe-avatar-stand">
-                      {dashboardAvatar}
-                    </div>
-
-                    <div className="nxe-card-stack" aria-label="Dashboard menu">
-                      {dashboardCards.map((card, index) => {
-                        const offset = (index - activeDashboardCard + dashboardCards.length) % dashboardCards.length;
-                        return (
-                          <div
-                            role="button"
-                            tabIndex={0}
-                            className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Store' && index === activeDashboardCard ? 'store-popular-card' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''} ${card.label === 'Settings' && index === activeDashboardCard ? 'settings-controls-open' : ''}`}
-                            style={{
-                              '--card-offset': offset,
-                              '--card-depth': Math.abs(offset),
-                              '--card-direction': 1,
-                              '--orbit-index': index,
-                              zIndex: 20 - offset,
-                              ...(card.label === 'Settings' && index === activeDashboardCard ? {
-                                background: selectedAvatarTheme.card,
-                                borderColor: selectedAvatarTheme.accent,
-                                color: '#ffffff'
-                              } : {})
-                            } as React.CSSProperties}
-                            key={card.label}
-                            onClick={() => handleDashboardCardClick(card, index)}
-                            onKeyDown={(event) => {
-                              if (event.key !== 'Enter' && event.key !== ' ') return;
-                              event.preventDefault();
-                              index === activeDashboardCard ? card.action() : setActiveDashboardCard(index);
-                            }}
-                          >
-                            <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
-                            {card.label === 'Store' && index === activeDashboardCard && selectedAvatarTheme.id !== 'cosmic-mind' ? renderPopularCardContent() : <strong>{card.label}</strong>}
-                            {card.label === 'Avatar' && index === activeDashboardCard && renderAvatarControls()}
-                            {card.label === 'Settings' && index === activeDashboardCard && renderDashboardSettings()}
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {dashboardNavigation}
+                    <div className="orbital-discovery"><span>DISCOVER NEW WORLDS</span>{popularGames.slice(0,3).map((game, index) => <button key={game.title} onClick={openStore}><img src={game.image}/><div><strong>{game.title}</strong><small>{['Explore the unknown','A legend awakens','Race beyond light'][index]}</small></div></button>)}</div>
+                    {isSettingsOpen && <aside className="orbital-settings"><button onClick={() => setActiveDashboardCard(0)}>×</button>{renderDashboardSettings()}</aside>}
                     {storeOpen && (
                       <section className="store-overlay" aria-label="KeyStone Store">
                         <div className="store-overlay-header">

@@ -64,12 +64,10 @@
 .orbit-node::before { content:""; grid-area:1/1; width:58px; height:58px; border:1px solid rgba(117,229,255,.58); border-radius:50%; background:rgba(6,21,44,.88); box-shadow:0 0 18px rgba(60,188,255,.2),inset 0 0 18px rgba(91,183,255,.12); transition:.25s ease; }
 .orbit-node:hover::before,.orbit-node.active::before { transform:scale(1.12); border-color:#fff; box-shadow:0 0 25px rgba(76,216,255,.6),inset 0 0 16px rgba(255,121,148,.18); }
 .orbit-node span { font-size:.7rem; font-weight:800; letter-spacing:.04em; text-shadow:0 2px 8px #000; }
-.orbit-icon { grid-area:1/1; z-index:1; width:20px; height:20px; border:2px solid #79e8ff; border-radius:5px; transform:rotate(45deg); }
-.icon-disc { border-radius:50%; box-shadow:inset 0 0 0 4px rgba(120,231,255,.18); }
-.icon-avatar-dot { border-radius:50% 50% 42% 42%; border-color:#ff879d; }
-.icon-deal-dot { border-radius:2px; border-color:#ffcc78; }
-.icon-upload-dot { clip-path:polygon(50% 0,100% 100%,0 100%); border-radius:0; }
-.icon-settings-dot { border-style:dashed; border-radius:50%; border-color:#a884ff; }
+.orbit-icon { grid-area:1/1; z-index:1; width:24px; height:24px; overflow:visible; fill:none; stroke:#79e8ff; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; filter:drop-shadow(0 0 5px rgba(67,215,255,.52)); transition:.25s ease; }
+.orbit-node:nth-of-type(4n+1) .orbit-icon { stroke:#ff8aa0; }
+.orbit-node:nth-of-type(4n+3) .orbit-icon { stroke:#ffd077; }
+.orbit-node:hover .orbit-icon,.orbit-node.active .orbit-icon { stroke:#fff; transform:scale(1.12); }
 .node-0 { left:50%; top:7%; }.node-1 { left:85%; top:28%; }.node-2 { left:85%; top:72%; }.node-3 { left:50%; top:93%; }.node-4 { left:15%; top:72%; }.node-5 { left:15%; top:28%; }.node-6 { left:50%; top:50%; }
 .orbital-discovery { position:absolute; right:clamp(28px,4vw,60px); top:clamp(120px,18vh,170px); z-index:12; display:grid; gap:10px; width:clamp(210px,20vw,290px); }
 .orbital-discovery > button { display:grid; grid-template-columns:84px 1fr; align-items:center; gap:10px; overflow:hidden; padding:5px; color:white; text-align:left; border:1px solid rgba(121,208,255,.16); border-radius:9px; background:rgba(7,19,39,.72); backdrop-filter:blur(12px); }

@@ -180,6 +180,19 @@ interface CurrentUser {
   role: 'user' | 'developer' | 'admin';
 }
 
+function OrbitalIcon({ kind }: { kind: string }) {
+  const paths: Record<string, React.ReactNode> = {
+    controller: <><path d="M7 9V6.8A2.8 2.8 0 0 1 9.8 4h4.4A2.8 2.8 0 0 1 17 6.8V9"/><path d="M5 9h14l1.2 7.2a2 2 0 0 1-3.2 1.9l-2.2-1.7H9.2L7 18.1a2 2 0 0 1-3.2-1.9L5 9Z"/><path d="M8 11v4M6 13h4M16.5 12.2h.01M18 14h.01"/></>,
+    disc: <><path d="M5 4.5h11.5A2.5 2.5 0 0 1 19 7v12H7.5A2.5 2.5 0 0 1 5 16.5v-12Z"/><path d="M5 16.5A2.5 2.5 0 0 1 7.5 14H19M9 7.5h6"/></>,
+    'upload-dot': <><path d="m5 18 2-7 5-6 5 6 2 7-7-2-7 2Z"/><path d="m9.5 13 2.5-5 2.5 5M12 16v3"/></>,
+    'avatar-dot': <><circle cx="12" cy="8" r="3.2"/><path d="M5.5 19c.6-4 2.8-6 6.5-6s5.9 2 6.5 6"/></>,
+    'deal-dot': <><path d="M4 5v5.5L12.5 19 20 11.5 11.5 3H6a2 2 0 0 0-2 2Z"/><circle cx="8" cy="7" r="1.2"/></>,
+    'settings-dot': <><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/></>,
+    'review-dot': <><path d="M6 3h9l3 3v15H6V3Z"/><path d="M14 3v4h4M9 13l2 2 4-5"/></>
+  };
+  return <svg className="orbit-icon" viewBox="0 0 24 24" aria-hidden="true">{paths[kind] || paths['settings-dot']}</svg>;
+}
+
 interface AvatarRig {
   fileName: string;
   blob: Blob;
@@ -350,7 +363,7 @@ function CosmicBrain3D({ onSelect }: { onSelect: (label: string) => void }) {
     const nodeLabels = [
       { label: 'STORE', position: [.38, 1.02, .9], color: '#7152d9' },
       { label: 'LIBRARY', position: [.96, .5, .9], color: '#e6932d' },
-      { label: 'DEVELOPER', position: [.92, -.42, .9], color: '#d54370' },
+      { label: 'CREATOR', position: [.92, -.42, .9], color: '#d54370' },
       { label: 'AVATAR', position: [0, -.92, .9], color: '#2fb4be' },
       { label: 'DEALS', position: [-.92, -.42, .9], color: '#9db63f' },
       { label: 'SETTINGS', position: [-.96, .5, .9], color: '#8359d4' }
@@ -1334,13 +1347,13 @@ function App() {
       action: () => setActiveTab('library')
     },
     {
-      label: 'Developer',
+      label: 'Creator',
       icon: 'upload-dot',
       action: () => setActiveTab('developer')
     },
     ...(currentUser?.role === 'admin' ? [{
       label: 'Review',
-      icon: 'settings-dot',
+      icon: 'review-dot',
       action: () => setActiveTab('review' as const)
     }] : []),
     {
@@ -1576,7 +1589,7 @@ function App() {
                 <div className="orbital-system" aria-label="KeyStone navigation">
                   <div className="orbital-track track-outer"></div><div className="orbital-track track-inner"></div>
                   <div className="keystone-core" aria-hidden="true"><i></i><i></i><i></i><span></span></div>
-                  {publicDashboardCards.map((card, index) => <button key={card.label} className={`orbit-node node-${index}`} onClick={() => card.label === 'Settings' ? setActiveDashboardCard(index) : card.action()}><i className={`orbit-icon icon-${card.icon}`}></i><span>{card.label}</span></button>)}
+                  {publicDashboardCards.map((card, index) => <button key={card.label} className={`orbit-node node-${index}`} onClick={() => card.label === 'Settings' ? setActiveDashboardCard(index) : card.action()}><OrbitalIcon kind={card.icon}/><span>{card.label}</span></button>)}
                 </div>
                 <div className="orbital-discovery"><span>DISCOVER NEW WORLDS</span>{popularGames.slice(0,3).map((game, index) => <button key={game.title} onClick={enterPublicDemo}><img src={game.image}/><div><strong>{game.title}</strong><small>{['Explore the unknown','A legend awakens','Race beyond light'][index]}</small></div></button>)}</div>
                 <div className="orbital-auth-panel">
@@ -1683,7 +1696,7 @@ function App() {
                     <div className="orbital-system" aria-label="KeyStone navigation">
                       <div className="orbital-track track-outer"></div><div className="orbital-track track-inner"></div>
                       <div className="keystone-core" aria-hidden="true"><i></i><i></i><i></i><span></span></div>
-                      {dashboardCards.map((card, index) => <button key={card.label} className={`orbit-node node-${index} ${index === activeDashboardCard ? 'active' : ''}`} onClick={() => { setActiveDashboardCard(index); if(card.label !== 'Settings') card.action(); }}><i className={`orbit-icon icon-${card.icon}`}></i><span>{card.label}</span></button>)}
+                      {dashboardCards.map((card, index) => <button key={card.label} className={`orbit-node node-${index} ${index === activeDashboardCard ? 'active' : ''}`} onClick={() => { setActiveDashboardCard(index); if(card.label !== 'Settings') card.action(); }}><OrbitalIcon kind={card.icon}/><span>{card.label}</span></button>)}
                     </div>
                     <div className="orbital-discovery"><span>DISCOVER NEW WORLDS</span>{popularGames.slice(0,3).map((game, index) => <button key={game.title} onClick={openStore}><img src={game.image}/><div><strong>{game.title}</strong><small>{['Explore the unknown','A legend awakens','Race beyond light'][index]}</small></div></button>)}</div>
                     {isSettingsOpen && <aside className="orbital-settings"><button onClick={() => setActiveDashboardCard(0)}>×</button>{renderDashboardSettings()}</aside>}
@@ -1742,8 +1755,8 @@ function App() {
         {activeTab === 'developer' && (
           <div className="developer-view">
             <button className="btn-secondary back-to-store" onClick={() => setActiveTab('marketplace')}>Back to Store</button>
-            <h1>Developer Portal</h1>
-            <p className="hint-text">Upload your game to KeyStone. Set your own price, and receive automatic royalties from every secondary market sale.</p>
+            <h1>Creator Portal</h1>
+            <p className="hint-text">Publish your game on KeyStone, set your own price, and receive automatic royalties from every secondary market sale.</p>
             
             <div style={{ background: 'rgba(31, 40, 51, 0.7)', padding: '2rem', borderRadius: '12px', border: '1px solid rgba(102, 252, 241, 0.2)', maxWidth: '600px' }}>
               <form onSubmit={async (e) => {

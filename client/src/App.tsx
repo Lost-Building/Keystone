@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import './App.css';
 
 // VERSION RULE: increment SITE_VERSION for every published site update.
-const SITE_VERSION = 'V9';
+const SITE_VERSION = 'V10';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const IS_PUBLIC_DEMO = window.location.hostname.endsWith('github.io') || new URLSearchParams(window.location.search).has('demo');
@@ -14,6 +14,9 @@ const AVATAR_MODEL_STORE = 'rigs';
 const AVATAR_MODEL_RECORD = 'activeRig';
 const AVATAR_ANIMATION_INDEX_KEY = 'keystoneAvatarRigAnimationIndex';
 const AVATAR_THEME_KEY = 'keystoneAvatarTheme';
+const DASHBOARD_BACKGROUND_DB = 'keystone-dashboard-background';
+const DASHBOARD_BACKGROUND_STORE = 'backgrounds';
+const DASHBOARD_BACKGROUND_RECORD = 'activeBackground';
 
 const avatarThemes = [
   { id: 'original', name: 'Original', colors: ['#5f9f28', '#b1ff57', '#d5ff41'], card: '#5f9f28', stage: '#9dce70', accent: '#b1ff57', outfit: '#d5ff41' },
@@ -186,6 +189,15 @@ interface StoredAvatarRig extends AvatarRig {
   id: string;
 }
 
+interface DashboardBackground {
+  fileName: string;
+  blob: Blob;
+}
+
+interface StoredDashboardBackground extends DashboardBackground {
+  id: string;
+}
+
 const openAvatarDb = () => new Promise<IDBDatabase>((resolve, reject) => {
   const request = indexedDB.open(AVATAR_MODEL_DB, 1);
 
@@ -228,6 +240,80 @@ const saveStoredAvatarRig = async (rig: AvatarRig) => {
       .transaction(AVATAR_MODEL_STORE, 'readwrite')
       .objectStore(AVATAR_MODEL_STORE)
       .put({ ...rig, id: AVATAR_MODEL_RECORD }, AVATAR_MODEL_RECORD);
+
+    request.onsuccess = () => {
+      db.close();
+      resolve();
+    };
+    request.onerror = () => {
+      db.close();
+      reject(request.error);
+    };
+  });
+};
+
+const openDashboardBackgroundDb = () => new Promise<IDBDatabase>((resolve, reject) => {
+  const request = indexedDB.open(DASHBOARD_BACKGROUND_DB, 1);
+
+  request.onupgradeneeded = () => {
+    request.result.createObjectStore(DASHBOARD_BACKGROUND_STORE);
+  };
+
+  request.onsuccess = () => resolve(request.result);
+  request.onerror = () => reject(request.error);
+});
+
+const loadStoredDashboardBackground = async () => {
+  if (!('indexedDB' in window)) return null;
+  const db = await openDashboardBackgroundDb();
+
+  return new Promise<DashboardBackground | null>((resolve, reject) => {
+    const request = db
+      .transaction(DASHBOARD_BACKGROUND_STORE, 'readonly')
+      .objectStore(DASHBOARD_BACKGROUND_STORE)
+      .get(DASHBOARD_BACKGROUND_RECORD);
+
+    request.onsuccess = () => {
+      db.close();
+      const result = request.result as StoredDashboardBackground | undefined;
+      resolve(result ? { fileName: result.fileName, blob: result.blob } : null);
+    };
+    request.onerror = () => {
+      db.close();
+      reject(request.error);
+    };
+  });
+};
+
+const saveStoredDashboardBackground = async (background: DashboardBackground) => {
+  const db = await openDashboardBackgroundDb();
+
+  return new Promise<void>((resolve, reject) => {
+    const request = db
+      .transaction(DASHBOARD_BACKGROUND_STORE, 'readwrite')
+      .objectStore(DASHBOARD_BACKGROUND_STORE)
+      .put({ ...background, id: DASHBOARD_BACKGROUND_RECORD }, DASHBOARD_BACKGROUND_RECORD);
+
+    request.onsuccess = () => {
+      db.close();
+      resolve();
+    };
+    request.onerror = () => {
+      db.close();
+      reject(request.error);
+    };
+  });
+};
+
+const clearStoredDashboardBackground = async () => {
+  if (!('indexedDB' in window)) return;
+  const db = await openDashboardBackgroundDb();
+
+  return new Promise<void>((resolve, reject) => {
+    const request = db
+      .transaction(DASHBOARD_BACKGROUND_STORE, 'readwrite')
+      .objectStore(DASHBOARD_BACKGROUND_STORE)
+      .delete(DASHBOARD_BACKGROUND_RECORD);
 
     request.onsuccess = () => {
       db.close();
@@ -682,11 +768,16 @@ function App() {
     return Number.isInteger(savedIndex) && savedIndex >= 0 ? savedIndex : 0;
   });
   const [avatarTheme, setAvatarTheme] = useState(() => localStorage.getItem(AVATAR_THEME_KEY) || 'original');
+  const [dashboardBackground, setDashboardBackground] = useState<DashboardBackground | null>(null);
+  const [dashboardBackgroundUrl, setDashboardBackgroundUrl] = useState('');
   const [storeOpen, setStoreOpen] = useState(false);
   const [popularGameIndex, setPopularGameIndex] = useState(0);
   const popularVideoUrl: string | null = null;
   const selectedAvatarTheme = avatarThemes.find((theme) => theme.id === avatarTheme) || avatarThemes[0];
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const dashboardBackgroundInputRef = useRef<HTMLInputElement>(null);
+  const dashboardSwipeStartX = useRef<number | null>(null);
+  const dashboardWheelTime = useRef(0);
   const gameInputRef = useRef<HTMLInputElement>(null);
   const [gameFiles, setGameFiles] = useState<File[]>([]);
   const [isDraggingGameFiles, setIsDraggingGameFiles] = useState(false);
@@ -714,6 +805,7 @@ function App() {
       localStorage.removeItem('authToken');
       setToken('');
       setCurrentUser(null);
+      setActiveDashboardCard(0);
     }
 
     return response;
@@ -738,6 +830,7 @@ function App() {
         localStorage.removeItem('authToken');
         setToken('');
         setCurrentUser(null);
+        setActiveDashboardCard(0);
       });
   }, [token]);
 
@@ -990,6 +1083,7 @@ function App() {
     localStorage.removeItem('authToken');
     setToken('');
     setCurrentUser(null);
+    setActiveDashboardCard(0);
     setLibrary([]);
     setMarketplace([]);
   };
@@ -1019,6 +1113,31 @@ function App() {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    loadStoredDashboardBackground()
+      .then((storedBackground) => {
+        if (isMounted && storedBackground) setDashboardBackground(storedBackground);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!dashboardBackground) {
+      setDashboardBackgroundUrl('');
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(dashboardBackground.blob);
+    setDashboardBackgroundUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [dashboardBackground]);
 
   useEffect(() => {
     if (!avatarRig) {
@@ -1072,6 +1191,45 @@ function App() {
     }
   };
 
+  const openDashboardBackgroundUpload = () => dashboardBackgroundInputRef.current?.click();
+
+  const handleDashboardBackgroundUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const input = event.currentTarget;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Choose a JPG, PNG, WebP, GIF, or another image file.');
+      input.value = '';
+      return;
+    }
+
+    if (file.size > 20 * 1024 * 1024) {
+      alert('That background is over 20 MB. Choose a smaller image for faster loading.');
+      input.value = '';
+      return;
+    }
+
+    try {
+      const background = { fileName: file.name, blob: file };
+      await saveStoredDashboardBackground(background);
+      setDashboardBackground(background);
+    } catch {
+      alert('Could not save that background in this browser.');
+    } finally {
+      input.value = '';
+    }
+  };
+
+  const resetDashboardBackground = async () => {
+    try {
+      await clearStoredDashboardBackground();
+      setDashboardBackground(null);
+    } catch {
+      alert('Could not reset the saved background.');
+    }
+  };
+
   const selectAvatarAnimation = (animationIndex: number) => {
     setAvatarAnimationIndex(animationIndex);
     localStorage.setItem(AVATAR_ANIMATION_INDEX_KEY, String(animationIndex));
@@ -1080,7 +1238,6 @@ function App() {
   const selectAvatarTheme = (themeId: string) => {
     setAvatarTheme(themeId);
     localStorage.setItem(AVATAR_THEME_KEY, themeId);
-    setActiveDashboardCard(0);
   };
 
   const openStore = () => setStoreOpen(true);
@@ -1098,9 +1255,9 @@ function App() {
     </span>
   );
 
-  const renderAvatarThemePicker = () => (
-    <div className="avatar-theme-picker" aria-label="Avatar card themes" onClick={(event) => event.stopPropagation()} onKeyDown={(event) => event.stopPropagation()}>
-      <span className="avatar-theme-label">Card theme</span>
+  const renderDashboardSettings = () => (
+    <div className="avatar-theme-picker dashboard-settings-panel" aria-label="Dashboard settings" onClick={(event) => event.stopPropagation()}>
+      <span className="avatar-theme-label">Dashboard theme</span>
       <div className="avatar-theme-row">
         {avatarThemes.map((theme) => (
           <button
@@ -1117,6 +1274,21 @@ function App() {
             {theme.colors.map((color) => <i key={color} style={{ backgroundColor: color }} />)}
           </button>
         ))}
+      </div>
+      <div className="dashboard-background-setting">
+        <span className="avatar-theme-label">Background image</span>
+        <div
+          className={`dashboard-background-preview ${dashboardBackgroundUrl ? 'has-image' : ''}`}
+          style={dashboardBackgroundUrl ? { backgroundImage: `url("${dashboardBackgroundUrl}")` } : undefined}
+          aria-label={dashboardBackground?.fileName || 'Default dashboard background'}
+        >
+          {!dashboardBackgroundUrl && <span>Default green</span>}
+        </div>
+        <div className="dashboard-background-actions">
+          <button type="button" onClick={openDashboardBackgroundUpload}>Choose image</button>
+          {dashboardBackground && <button type="button" onClick={resetDashboardBackground}>Use default</button>}
+        </div>
+        <small title={dashboardBackground?.fileName}>{dashboardBackground?.fileName || 'Saved only in this browser'}</small>
       </div>
     </div>
   );
@@ -1231,14 +1403,52 @@ function App() {
     index === activeDashboardCard ? card.action() : setActiveDashboardCard(index);
   };
 
-  const dashboardCardCount = currentUser ? dashboardCards.length : publicDashboardCards.length;
+  const activeDashboardCards = currentUser ? dashboardCards : publicDashboardCards;
+  const dashboardCardCount = activeDashboardCards.length;
+  const moveDashboardCard = useCallback((amount: number) => {
+    if (storeOpen) return;
+    setActiveDashboardCard((current) => (current + amount + dashboardCardCount) % dashboardCardCount);
+  }, [dashboardCardCount, storeOpen]);
+
+  const handleDashboardPointerDown = (event: React.PointerEvent<HTMLElement>) => {
+    dashboardSwipeStartX.current = event.clientX;
+  };
+
+  const handleDashboardPointerUp = (event: React.PointerEvent<HTMLElement>) => {
+    const startX = dashboardSwipeStartX.current;
+    dashboardSwipeStartX.current = null;
+    if (startX === null || selectedAvatarTheme.id === 'cosmic-mind') return;
+    const distance = event.clientX - startX;
+    if (Math.abs(distance) >= 55) moveDashboardCard(distance < 0 ? 1 : -1);
+  };
+
+  const handleDashboardWheel = (event: React.WheelEvent<HTMLElement>) => {
+    if (selectedAvatarTheme.id === 'cosmic-mind') {
+      adjustCosmicZoom(event.deltaY < 0 ? .08 : -.08);
+      return;
+    }
+
+    if (Math.abs(event.deltaX) < 24 || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return;
+    const now = event.timeStamp;
+    if (now - dashboardWheelTime.current < 360) return;
+    dashboardWheelTime.current = now;
+    moveDashboardCard(event.deltaX > 0 ? 1 : -1);
+  };
 
   useEffect(() => {
     const handleDashboardKeys = (event: KeyboardEvent) => {
-      if (event.key === 'ArrowLeft') {
-        setActiveDashboardCard((current) => (current - 1 + dashboardCardCount) % dashboardCardCount);
-      } else if (event.key === 'ArrowRight') {
-        setActiveDashboardCard((current) => (current + 1) % dashboardCardCount);
+      const target = event.target as HTMLElement | null;
+      if (storeOpen || (currentUser && activeTab !== 'marketplace')) return;
+      if (target?.matches('input, textarea, select, [contenteditable="true"]')) return;
+
+      if (event.key === 'ArrowLeft' || event.key.toLowerCase() === 'a') {
+        moveDashboardCard(-1);
+      } else if (event.key === 'ArrowRight' || event.key.toLowerCase() === 'd') {
+        moveDashboardCard(1);
+      } else if (event.key === 'Home') {
+        setActiveDashboardCard(0);
+      } else if (event.key === 'End') {
+        setActiveDashboardCard(dashboardCardCount - 1);
       } else {
         return;
       }
@@ -1246,9 +1456,19 @@ function App() {
       event.preventDefault();
     };
 
-    window.addEventListener('keydown', handleDashboardKeys);
-    return () => window.removeEventListener('keydown', handleDashboardKeys);
-  }, [dashboardCardCount]);
+    window.addEventListener('keydown', handleDashboardKeys, true);
+    return () => window.removeEventListener('keydown', handleDashboardKeys, true);
+  }, [activeTab, currentUser, dashboardCardCount, storeOpen, moveDashboardCard]);
+
+  const dashboardNavigation = (
+    <div className="nxe-hints dashboard-navigation" aria-label="Dashboard card navigation">
+      <button type="button" onClick={(event) => { event.stopPropagation(); moveDashboardCard(-1); }} aria-label="Previous card">◀</button>
+      <span className="dashboard-card-position">{activeDashboardCard + 1} / {dashboardCardCount}</span>
+      <button type="button" onClick={(event) => { event.stopPropagation(); moveDashboardCard(1); }} aria-label="Next card">▶</button>
+      <span><b>A</b> Select</span>
+      <span className="keyboard-hint">← → or A D</span>
+    </div>
+  );
 
   const dashboardAvatar = (
       <div
@@ -1309,10 +1529,19 @@ function App() {
     </div>
   );
 
+  const isSettingsOpen = activeDashboardCards[activeDashboardCard]?.label === 'Settings';
+  const appContainerClass = `app-container ${selectedAvatarTheme.id === 'cosmic-mind' && isSettingsOpen ? 'settings-panel-open' : ''} ${dashboardBackgroundUrl ? 'has-custom-dashboard-background' : ''}`;
+  const dashboardPageStyle = {
+    '--page-theme': selectedAvatarTheme.card,
+    '--page-accent': selectedAvatarTheme.accent,
+    ...(dashboardBackgroundUrl ? { '--dashboard-background-image': `url("${dashboardBackgroundUrl}")` } : {})
+  } as React.CSSProperties;
+
   if (!token || !currentUser) {
     return (
-      <div className={`app-container ${selectedAvatarTheme.id === 'cosmic-mind' && dashboardCards[activeDashboardCard]?.label === 'Settings' ? 'settings-panel-open' : ''}`} data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties}>
+      <div className={appContainerClass} data-theme={selectedAvatarTheme.id} style={dashboardPageStyle}>
         <input ref={avatarInputRef} className="avatar-file-input" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" onChange={handleAvatarUpload} />
+        <input ref={dashboardBackgroundInputRef} className="avatar-file-input" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.avif" onChange={handleDashboardBackgroundUpload} />
         <div className="xbox-shell public-xbox-shell public-nxe-shell">
           <main className="blade-dashboard nxe-dashboard">
             <aside className="blade-rail left-blades" aria-label="Left blades">
@@ -1329,7 +1558,9 @@ function App() {
               <section
                 className="nxe-scene public-nxe-scene"
                 style={{ '--cosmic-zoom': cosmicZoom } as React.CSSProperties}
-                onWheel={(event) => selectedAvatarTheme.id === 'cosmic-mind' && adjustCosmicZoom(event.deltaY < 0 ? .08 : -.08)}
+                onWheel={handleDashboardWheel}
+                onPointerDown={handleDashboardPointerDown}
+                onPointerUp={handleDashboardPointerUp}
               >
                 {cosmicZoomControls}
                 <div className="nxe-breadcrumbs" aria-label="Current section"><span>Inside KeyStone</span><span>Friends</span><span>Video Marketplace</span><strong>Game Marketplace</strong><b>My KeyStone</b></div>
@@ -1376,7 +1607,7 @@ function App() {
                       <div
                         role="button"
                         tabIndex={0}
-                        className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Store' && index === activeDashboardCard ? 'store-popular-card' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''}`}
+                        className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Store' && index === activeDashboardCard ? 'store-popular-card' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''} ${card.label === 'Settings' && index === activeDashboardCard ? 'settings-controls-open' : ''}`}
                         style={{
                           '--card-offset': offset,
                           '--card-depth': Math.abs(offset),
@@ -1400,13 +1631,13 @@ function App() {
                         <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
                         {card.label === 'Store' && index === activeDashboardCard && selectedAvatarTheme.id !== 'cosmic-mind' ? renderPopularCardContent() : <strong>{card.label}</strong>}
                         {card.label === 'Avatar' && index === activeDashboardCard && renderAvatarControls()}
-                        {card.label === 'Settings' && index === activeDashboardCard && renderAvatarThemePicker()}
+                        {card.label === 'Settings' && index === activeDashboardCard && renderDashboardSettings()}
                       </div>
                     );
                   })}
                 </div>
 
-                <div className="nxe-hints"><span><b>A</b> Select</span><span><b>◀</b> Back</span></div>
+                {dashboardNavigation}
 
               </section>
             </section>
@@ -1422,8 +1653,9 @@ function App() {
   }
 
   return (
-    <div className={`app-container ${selectedAvatarTheme.id === 'cosmic-mind' && dashboardCards[activeDashboardCard]?.label === 'Settings' ? 'settings-panel-open' : ''}`} data-theme={selectedAvatarTheme.id} style={{ '--page-theme': selectedAvatarTheme.card, '--page-accent': selectedAvatarTheme.accent } as React.CSSProperties} onClick={closeContextMenu}>
+    <div className={appContainerClass} data-theme={selectedAvatarTheme.id} style={dashboardPageStyle} onClick={closeContextMenu}>
       <input ref={avatarInputRef} className="avatar-file-input" type="file" accept=".glb,.gltf,model/gltf-binary,model/gltf+json" onChange={handleAvatarUpload} />
+      <input ref={dashboardBackgroundInputRef} className="avatar-file-input" type="file" accept="image/*,.jpg,.jpeg,.png,.webp,.gif,.avif" onChange={handleDashboardBackgroundUpload} />
       <div className="titlebar">
         <div className="titlebar-drag-region"></div>
         <div className="titlebar-controls">
@@ -1489,7 +1721,9 @@ function App() {
                   <section
                     className={`nxe-scene nxe-menu-only-scene ${storeOpen ? 'store-open' : ''}`}
                     style={{ '--cosmic-zoom': cosmicZoom } as React.CSSProperties}
-                    onWheel={(event) => selectedAvatarTheme.id === 'cosmic-mind' && adjustCosmicZoom(event.deltaY < 0 ? .08 : -.08)}
+                    onWheel={handleDashboardWheel}
+                    onPointerDown={handleDashboardPointerDown}
+                    onPointerUp={handleDashboardPointerUp}
                   >
                     {cosmicZoomControls}
                     <div className="nxe-breadcrumbs" aria-label="Current section"><span>Inside KeyStone</span><span>Friends</span><span>Video Marketplace</span><strong>Game Marketplace</strong><b>My KeyStone</b></div>
@@ -1520,7 +1754,7 @@ function App() {
                           <div
                             role="button"
                             tabIndex={0}
-                            className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Store' && index === activeDashboardCard ? 'store-popular-card' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''}`}
+                            className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Store' && index === activeDashboardCard ? 'store-popular-card' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''} ${card.label === 'Settings' && index === activeDashboardCard ? 'settings-controls-open' : ''}`}
                             style={{
                               '--card-offset': offset,
                               '--card-depth': Math.abs(offset),
@@ -1544,12 +1778,12 @@ function App() {
                             <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
                             {card.label === 'Store' && index === activeDashboardCard && selectedAvatarTheme.id !== 'cosmic-mind' ? renderPopularCardContent() : <strong>{card.label}</strong>}
                             {card.label === 'Avatar' && index === activeDashboardCard && renderAvatarControls()}
-                            {card.label === 'Settings' && index === activeDashboardCard && renderAvatarThemePicker()}
+                            {card.label === 'Settings' && index === activeDashboardCard && renderDashboardSettings()}
                           </div>
                         );
                       })}
                     </div>
-                    <div className="nxe-hints"><span><b>A</b> Select</span><span><b>◀</b> Back</span></div>
+                    {dashboardNavigation}
                     {storeOpen && (
                       <section className="store-overlay" aria-label="KeyStone Store">
                         <div className="store-overlay-header">

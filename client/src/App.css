@@ -7,13 +7,15 @@
   --text-light: #ffffff;
 }
 
-/* Glossy mirrored carousel inspired by the classic console dashboard. */
+/* Classic console dashboard: left-selected, right-receding card carousel. */
 .app-container:not([data-theme="cosmic-mind"]) .nxe-scene,
 .app-container:not([data-theme="cosmic-mind"]) .public-nxe-scene {
+  min-height: 100dvh;
+  height: 100dvh;
   background:
-    radial-gradient(circle at 22% 14%, rgba(218,255,107,.72), transparent 26%),
-    radial-gradient(circle at 78% 20%, rgba(255,255,255,.28), transparent 22%),
-    linear-gradient(180deg, #23570d 0%, #86d82a 36%, #d9f4c9 48%, #aeb9b4 49%, #536064 72%, #172126 100%) !important;
+    radial-gradient(circle at 21% 10%, rgba(211,255,102,.8), transparent 27%),
+    radial-gradient(circle at 70% 17%, rgba(238,255,224,.42), transparent 24%),
+    linear-gradient(180deg, #1f5f09 0%, #74c925 28%, #d6efce 46%, #d5e3e5 47%, #829297 65%, #334249 100%) !important;
   overflow: hidden;
 }
 
@@ -22,113 +24,240 @@
   content: "";
   position: absolute;
   inset: 0;
-  opacity: .72;
+  z-index: 0;
+  opacity: .82;
   pointer-events: none;
   background:
-    radial-gradient(circle at 12% 20%, transparent 0 15px, rgba(255,255,255,.16) 16px 18px, transparent 19px),
-    radial-gradient(circle at 83% 17%, transparent 0 24px, rgba(255,255,255,.12) 25px 27px, transparent 28px),
-    repeating-radial-gradient(circle at 64% 29%, transparent 0 17px, rgba(255,255,255,.07) 18px 20px, transparent 21px 34px),
-    linear-gradient(180deg, transparent 45%, rgba(255,255,255,.28) 48%, transparent 62%);
+    radial-gradient(circle at 12% 18%, transparent 0 14px, rgba(255,255,255,.16) 15px 17px, transparent 18px),
+    radial-gradient(circle at 84% 16%, transparent 0 24px, rgba(255,255,255,.13) 25px 27px, transparent 28px),
+    repeating-radial-gradient(circle at 70% 25%, transparent 0 18px, rgba(255,255,255,.08) 19px 21px, transparent 22px 35px),
+    radial-gradient(circle at 28% 25%, rgba(255,255,255,.23) 0 4px, transparent 5px),
+    linear-gradient(176deg, transparent 0 43%, rgba(255,255,255,.48) 46%, transparent 49%);
+  transform: none;
+  filter: none;
 }
 
 .app-container:not([data-theme="cosmic-mind"]) .nxe-scene::after,
 .app-container:not([data-theme="cosmic-mind"]) .public-nxe-scene::after {
   content: "";
   position: absolute;
-  inset: 49% 0 0;
+  inset: 46% 0 0;
   z-index: 0;
   pointer-events: none;
   background:
-    linear-gradient(95deg, transparent, rgba(255,255,255,.16) 38%, transparent 63%),
-    repeating-radial-gradient(ellipse at 72% 82%, transparent 0 34px, rgba(195,255,104,.13) 36px 38px, transparent 40px 58px);
-  mask-image: linear-gradient(180deg, rgba(0,0,0,.9), transparent 88%);
+    radial-gradient(ellipse at 38% 4%, rgba(255,255,255,.5), transparent 35%),
+    linear-gradient(96deg, transparent, rgba(255,255,255,.18) 42%, transparent 67%),
+    repeating-radial-gradient(ellipse at 84% 78%, transparent 0 31px, rgba(190,255,104,.15) 33px 35px, transparent 37px 56px);
+  mask-image: linear-gradient(180deg, #000, rgba(0,0,0,.7) 58%, transparent 98%);
 }
+
+.app-container:not([data-theme="cosmic-mind"]) .dashboard-store-shell,
+.app-container:not([data-theme="cosmic-mind"]) .blade-dashboard,
+.app-container:not([data-theme="cosmic-mind"]) .blade-stage { height: 100dvh; min-height: 100dvh; }
 
 .app-container:not([data-theme="cosmic-mind"]) .nxe-card-stack,
 .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-only-scene .nxe-card-stack {
   left: 0;
-  top: clamp(185px, 31vh, 250px);
+  top: clamp(205px, 35vh, 255px);
   width: 100%;
-  height: clamp(180px, 28vh, 225px);
-  perspective: 1100px;
-  perspective-origin: 48% 45%;
+  height: clamp(210px, 36vh, 285px);
+  perspective: 1050px;
+  perspective-origin: 32% 45%;
   overflow: visible;
 }
 
 .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-card,
 .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-only-scene .nxe-menu-card {
-  left: calc(35% + (var(--card-offset) * clamp(145px, 15vw, 215px)));
+  left: calc(clamp(180px, 28vw, 420px) + (var(--card-offset) * clamp(125px, 15vw, 205px)));
   top: 0;
-  width: clamp(250px, 25vw, 340px);
+  width: clamp(250px, 28vw, 330px);
   height: 100%;
-  opacity: calc(1 - (var(--card-depth) * .16));
+  opacity: calc(1 - (var(--card-depth) * .09));
   transform:
-    translate3d(-50%, calc(var(--card-depth) * 8px), calc(var(--card-depth) * -95px))
-    rotateY(calc(var(--card-direction) * -13deg))
-    scale(calc(1 - (var(--card-depth) * .07)));
-  transform-origin: center;
+    translate3d(-50%, calc(var(--card-depth) * 5px), calc(var(--card-depth) * -110px))
+    rotateY(calc(var(--card-depth) * -2.5deg))
+    scale(calc(1 - (var(--card-depth) * .085)));
+  transform-origin: left center;
   border: 2px solid rgba(244,255,215,.82);
   border-radius: 9px;
   background:
-    radial-gradient(circle at 25% 15%, rgba(255,255,255,.58), transparent 25%),
-    repeating-radial-gradient(circle at 82% 28%, transparent 0 17px, rgba(255,255,255,.1) 18px 20px, transparent 21px 32px),
-    linear-gradient(145deg, #dfff2e 0%, #9ee817 48%, #3c8b08 100%) !important;
+    radial-gradient(circle at 25% 12%, rgba(255,255,255,.7), transparent 24%),
+    repeating-radial-gradient(circle at 82% 28%, transparent 0 17px, rgba(255,255,255,.11) 18px 20px, transparent 21px 32px),
+    linear-gradient(180deg, #edff28 0%, #aeef14 45%, #66b10a 70%, #143b0a 100%) !important;
   box-shadow:
     inset 0 2px 0 rgba(255,255,255,.9),
     inset 18px 0 28px rgba(255,255,255,.12),
     inset -30px -34px 48px rgba(28,73,5,.34),
-    calc(var(--card-direction) * 16px) 22px 34px rgba(22,39,14,.42),
+    14px 23px 34px rgba(22,39,14,.46),
     0 12px 26px rgba(22,52,10,.34);
-  -webkit-box-reflect: below 13px linear-gradient(transparent 8%, rgba(255,255,255,.22) 48%, transparent 82%);
+  -webkit-box-reflect: below 7px linear-gradient(rgba(255,255,255,.2), transparent 42%);
 }
 
 .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-card.active,
 .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-only-scene .nxe-menu-card.active {
-  width: clamp(290px, 29vw, 390px);
+  width: clamp(250px, 28vw, 330px);
   opacity: 1;
-  transform: translate3d(-50%, -9px, 42px) rotateY(-2deg) scale(1.04);
+  transform: translate3d(-50%, -7px, 35px) rotateY(-1deg) scale(1.035);
   z-index: 25 !important;
   box-shadow:
     inset 0 2px 0 rgba(255,255,255,.98),
     inset 0 -45px 58px rgba(29,68,5,.32),
-    20px 30px 54px rgba(15,32,10,.48),
+    18px 29px 50px rgba(15,32,10,.5),
     0 0 36px rgba(198,255,54,.34);
 }
 
 .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-card::after {
-  bottom: -48px;
-  height: 42px;
+  bottom: -38px;
+  height: 34px;
   background: rgba(12,25,11,.56);
   filter: blur(18px);
 }
 
 .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-card strong {
+  align-self: end;
+  justify-self: start;
   font-size: clamp(1rem, 1.35vw, 1.35rem);
   text-shadow: 0 2px 8px rgba(35,76,6,.7);
 }
 
+.app-container:not([data-theme="cosmic-mind"]) .store-popular-card > strong {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: block;
+}
+.app-container:not([data-theme="cosmic-mind"]) .store-popular-card > .popular-card-content,
+.app-container:not([data-theme="cosmic-mind"]) .store-popular-card > strong > .popular-card-content {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  align-content: end;
+  justify-items: start;
+  gap: .2rem;
+  padding: 1rem;
+  overflow: hidden;
+  box-sizing: border-box;
+  background: transparent;
+}
+.app-container:not([data-theme="cosmic-mind"]) .store-popular-card > .popular-card-content::after,
+.app-container:not([data-theme="cosmic-mind"]) .store-popular-card > strong > .popular-card-content::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(156,235,18,.08) 18%, rgba(39,91,5,.18) 52%, rgba(11,39,5,.92) 100%);
+}
+.app-container:not([data-theme="cosmic-mind"]) .store-popular-card > .popular-card-content img,
+.app-container:not([data-theme="cosmic-mind"]) .store-popular-card > .popular-card-content video,
+.app-container:not([data-theme="cosmic-mind"]) .store-popular-card > strong > .popular-card-content img,
+.app-container:not([data-theme="cosmic-mind"]) .store-popular-card > strong > .popular-card-content video {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border: 0;
+  border-radius: 0;
+  opacity: .72;
+  filter: saturate(.9) hue-rotate(22deg);
+}
+.app-container:not([data-theme="cosmic-mind"]) .store-popular-card > .popular-card-content small,
+.app-container:not([data-theme="cosmic-mind"]) .store-popular-card > .popular-card-content b,
+.app-container:not([data-theme="cosmic-mind"]) .store-popular-card > strong > .popular-card-content small,
+.app-container:not([data-theme="cosmic-mind"]) .store-popular-card > strong > .popular-card-content b {
+  position: relative;
+  z-index: 2;
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0,0,0,.75);
+}
+
+.app-container:not([data-theme="cosmic-mind"]) .nxe-menu-only-scene .nxe-menu-card:not(.active) strong {
+  justify-self: start;
+  margin: 0;
+}
+
+.app-container:not([data-theme="cosmic-mind"]) .nxe-menu-card > .nxe-controller {
+  position: relative;
+  align-self: center;
+  justify-self: center;
+  filter: drop-shadow(0 7px 7px rgba(35,77,4,.38));
+}
+
+.app-container:not([data-theme="cosmic-mind"]) .nxe-controller.disc {
+  background: conic-gradient(from 22deg, #fff, #d9ff8d, #7fbf18, #f8ffe8, #93ce28, #fff);
+  box-shadow: inset 0 0 0 3px rgba(255,255,255,.72), inset 0 0 15px rgba(55,107,4,.32), 0 7px 12px rgba(35,77,4,.32);
+}
+.app-container:not([data-theme="cosmic-mind"]) .nxe-controller.disc::after {
+  content: "";
+  position: absolute;
+  inset: 35%;
+  border-radius: 50%;
+  background: #75b516;
+  box-shadow: inset 0 2px 4px rgba(31,76,1,.35), 0 0 0 2px rgba(255,255,255,.5);
+}
+.app-container:not([data-theme="cosmic-mind"]) .nxe-controller.avatar-dot {
+  background: radial-gradient(circle at 50% 29%, #fff 0 16%, transparent 17%), radial-gradient(ellipse at 50% 85%, #fff 0 33%, transparent 34%);
+  box-shadow: none;
+}
+.app-container:not([data-theme="cosmic-mind"]) .nxe-controller.upload-dot::before,
+.app-container:not([data-theme="cosmic-mind"]) .nxe-controller.deal-dot::before,
+.app-container:not([data-theme="cosmic-mind"]) .nxe-controller.settings-dot::before {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #72ad16;
+  background: rgba(255,255,255,.92);
+  border-radius: 50%;
+  font-size: 2rem;
+  font-weight: 900;
+  box-shadow: inset 0 -6px 12px rgba(85,133,18,.18), 0 6px 12px rgba(35,77,4,.28);
+}
+.app-container:not([data-theme="cosmic-mind"]) .nxe-controller.upload-dot,
+.app-container:not([data-theme="cosmic-mind"]) .nxe-controller.deal-dot,
+.app-container:not([data-theme="cosmic-mind"]) .nxe-controller.settings-dot {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+}
+.app-container:not([data-theme="cosmic-mind"]) .nxe-controller.upload-dot::before { content: "↑"; }
+.app-container:not([data-theme="cosmic-mind"]) .nxe-controller.deal-dot::before { content: "%"; font-size: 1.45rem; }
+.app-container:not([data-theme="cosmic-mind"]) .nxe-controller.settings-dot::before { content: "⚙"; font-size: 1.55rem; }
+
 .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-only-scene .nxe-avatar-stand {
-  left: 58%;
-  top: clamp(142px, 21vh, 185px);
-  z-index: 18;
-  width: clamp(220px, 25vw, 340px);
+  left: 59%;
+  top: clamp(205px, 35vh, 255px);
+  z-index: 30;
+  width: clamp(130px, 13vw, 180px);
   transform: translateX(-50%);
-  filter: drop-shadow(16px 22px 18px rgba(18,31,20,.45));
+  filter: drop-shadow(12px 18px 13px rgba(18,31,20,.5));
 }
 
 .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-only-scene .nxe-avatar-stand .avatar-stage,
 .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-only-scene .nxe-avatar-stand .avatar-rig-viewer {
   width: 100%;
-  height: clamp(360px, 52vh, 510px);
-  min-height: 360px;
+  height: clamp(280px, 44vh, 355px);
+  min-height: 280px;
 }
+.app-container:not([data-theme="cosmic-mind"]) .nxe-menu-only-scene .nxe-avatar-stand .avatar-body {
+  transform: scale(1.15);
+  transform-origin: center bottom;
+}
+
+.app-container:not([data-theme="cosmic-mind"]) .nxe-breadcrumbs { left: clamp(54px, 7vw, 100px); top: clamp(48px, 7vh, 68px); }
+.app-container:not([data-theme="cosmic-mind"]) .nxe-hints { left: clamp(54px, 7vw, 100px); bottom: clamp(34px, 6vh, 58px); }
+.app-container:not([data-theme="cosmic-mind"]) .nxe-player-summary { top: clamp(48px, 7vh, 68px); }
 
 @media (max-width: 820px) {
   .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-card,
   .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-only-scene .nxe-menu-card {
-    left: calc(42% + (var(--card-offset) * 130px));
+    left: calc(clamp(150px, 32vw, 260px) + (var(--card-offset) * 112px));
   }
-  .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-only-scene .nxe-avatar-stand { left: 72%; opacity: .78; }
+  .app-container:not([data-theme="cosmic-mind"]) .nxe-menu-only-scene .nxe-avatar-stand { left: 62%; opacity: .92; }
 }
 
 body {

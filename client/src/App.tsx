@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import './App.css';
 
 // VERSION RULE: increment SITE_VERSION for every published site update.
-const SITE_VERSION = 'V8';
+const SITE_VERSION = 'V9';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const IS_PUBLIC_DEMO = window.location.hostname.endsWith('github.io') || new URLSearchParams(window.location.search).has('demo');
@@ -28,10 +28,10 @@ const avatarThemes = [
   { id: 'forest-premium', name: 'Forest Premium', colors: ['#102A24', '#159A72', '#D5A928'], card: '#102A24', stage: '#1B4A3A', accent: '#D5A928', outfit: '#159A72' }
 ];
 const popularGames = [
-  { title: 'Neon Horizon', image: '/space_explorer.jpg' },
-  { title: 'Starfall Circuit', image: '/epic_quest.jpg' },
-  { title: 'Dungeon Relay', image: '/epic_quest.jpg' },
-  { title: 'Skyline Drift', image: '/space_explorer.jpg' }
+  { title: 'Neon Horizon', image: `${import.meta.env.BASE_URL}space_explorer.jpg` },
+  { title: 'Starfall Circuit', image: `${import.meta.env.BASE_URL}epic_quest.jpg` },
+  { title: 'Dungeon Relay', image: `${import.meta.env.BASE_URL}epic_quest.jpg` },
+  { title: 'Skyline Drift', image: `${import.meta.env.BASE_URL}space_explorer.jpg` }
 ];
 const MAX_AVATAR_ANIMATIONS = 5;
 const GAME_UPLOAD_ACCEPT = [
@@ -1332,6 +1332,7 @@ function App() {
                 onWheel={(event) => selectedAvatarTheme.id === 'cosmic-mind' && adjustCosmicZoom(event.deltaY < 0 ? .08 : -.08)}
               >
                 {cosmicZoomControls}
+                <div className="nxe-breadcrumbs" aria-label="Current section"><span>Inside KeyStone</span><span>Friends</span><span>Video Marketplace</span><strong>Game Marketplace</strong><b>My KeyStone</b></div>
                 <svg className="neural-network-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
                   <defs><filter id="neuralGlowPublic"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
                   {[[500,78],[805,205],[790,505],[500,622],[210,505],[195,205]].map(([x,y], index) => (
@@ -1370,8 +1371,7 @@ function App() {
 
                 <div className="nxe-card-stack" aria-label="Dashboard menu">
                   {publicDashboardCards.map((card, index) => {
-                    const half = Math.floor(publicDashboardCards.length / 2);
-                    const offset = ((index - activeDashboardCard + publicDashboardCards.length + half) % publicDashboardCards.length) - half;
+                    const offset = (index - activeDashboardCard + publicDashboardCards.length) % publicDashboardCards.length;
                     return (
                       <div
                         role="button"
@@ -1380,7 +1380,7 @@ function App() {
                         style={{
                           '--card-offset': offset,
                           '--card-depth': Math.abs(offset),
-                          '--card-direction': Math.sign(offset),
+                          '--card-direction': 1,
                           '--orbit-index': index,
                           zIndex: 20 - offset,
                           ...(card.label === 'Settings' && index === activeDashboardCard ? {
@@ -1398,13 +1398,15 @@ function App() {
                         }}
                       >
                         <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
-                        <strong>{card.label === 'Store' && index === activeDashboardCard && selectedAvatarTheme.id !== 'cosmic-mind' ? renderPopularCardContent() : card.label}</strong>
+                        {card.label === 'Store' && index === activeDashboardCard && selectedAvatarTheme.id !== 'cosmic-mind' ? renderPopularCardContent() : <strong>{card.label}</strong>}
                         {card.label === 'Avatar' && index === activeDashboardCard && renderAvatarControls()}
                         {card.label === 'Settings' && index === activeDashboardCard && renderAvatarThemePicker()}
                       </div>
                     );
                   })}
                 </div>
+
+                <div className="nxe-hints"><span><b>A</b> Select</span><span><b>◀</b> Back</span></div>
 
               </section>
             </section>
@@ -1490,6 +1492,8 @@ function App() {
                     onWheel={(event) => selectedAvatarTheme.id === 'cosmic-mind' && adjustCosmicZoom(event.deltaY < 0 ? .08 : -.08)}
                   >
                     {cosmicZoomControls}
+                    <div className="nxe-breadcrumbs" aria-label="Current section"><span>Inside KeyStone</span><span>Friends</span><span>Video Marketplace</span><strong>Game Marketplace</strong><b>My KeyStone</b></div>
+                    <div className="nxe-player-summary"><strong>{currentUser.username}</strong><span>Online</span><i aria-hidden="true"></i></div>
                     <svg className="neural-network-lines" viewBox="0 0 1000 700" preserveAspectRatio="none" aria-hidden="true">
                       <defs><filter id="neuralGlow"><feGaussianBlur stdDeviation="4" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
                       {[[500,78],[805,205],[790,505],[500,622],[210,505],[195,205]].map(([x,y], index) => (
@@ -1511,8 +1515,7 @@ function App() {
 
                     <div className="nxe-card-stack" aria-label="Dashboard menu">
                       {dashboardCards.map((card, index) => {
-                        const half = Math.floor(dashboardCards.length / 2);
-                        const offset = ((index - activeDashboardCard + dashboardCards.length + half) % dashboardCards.length) - half;
+                        const offset = (index - activeDashboardCard + dashboardCards.length) % dashboardCards.length;
                         return (
                           <div
                             role="button"
@@ -1521,7 +1524,7 @@ function App() {
                             style={{
                               '--card-offset': offset,
                               '--card-depth': Math.abs(offset),
-                              '--card-direction': Math.sign(offset),
+                              '--card-direction': 1,
                               '--orbit-index': index,
                               zIndex: 20 - offset,
                               ...(card.label === 'Settings' && index === activeDashboardCard ? {
@@ -1539,13 +1542,14 @@ function App() {
                             }}
                           >
                             <span className={`nxe-controller ${card.icon === 'controller' ? '' : card.icon}`}></span>
-                            <strong>{card.label === 'Store' && index === activeDashboardCard && selectedAvatarTheme.id !== 'cosmic-mind' ? renderPopularCardContent() : card.label}</strong>
+                            {card.label === 'Store' && index === activeDashboardCard && selectedAvatarTheme.id !== 'cosmic-mind' ? renderPopularCardContent() : <strong>{card.label}</strong>}
                             {card.label === 'Avatar' && index === activeDashboardCard && renderAvatarControls()}
                             {card.label === 'Settings' && index === activeDashboardCard && renderAvatarThemePicker()}
                           </div>
                         );
                       })}
                     </div>
+                    <div className="nxe-hints"><span><b>A</b> Select</span><span><b>◀</b> Back</span></div>
                     {storeOpen && (
                       <section className="store-overlay" aria-label="KeyStone Store">
                         <div className="store-overlay-header">

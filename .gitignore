@@ -6,6 +6,8 @@ backend/.env
 backend/keystone.sqlite
 backend/keystone.sqlite-shm
 backend/keystone.sqlite-wal
+backend/uploads/
+backend/data/
 .DS_Store
 Thumbs.db
 .agents/

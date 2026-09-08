@@ -85,6 +85,46 @@ async function initDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
 
+    CREATE TABLE IF NOT EXISTS game_uploads (
+      id TEXT PRIMARY KEY,
+      game_id TEXT NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+      original_name TEXT NOT NULL,
+      stored_name TEXT NOT NULL,
+      mime_type TEXT,
+      size_bytes BIGINT NOT NULL CHECK (size_bytes >= 0),
+      file_kind TEXT NOT NULL DEFAULT 'build',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+    );
+
+    CREATE TABLE IF NOT EXISTS game_releases (
+      id TEXT PRIMARY KEY,
+      game_id TEXT NOT NULL REFERENCES games(id) ON DELETE CASCADE,
+      version TEXT NOT NULL,
+      release_notes TEXT NOT NULL,
+      store_changes JSONB NOT NULL DEFAULT '{}'::jsonb,
+      review_status TEXT NOT NULL DEFAULT 'pending_review',
+      review_notes TEXT,
+      reviewed_by TEXT REFERENCES users(id),
+      submitted_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      reviewed_at TIMESTAMPTZ,
+      released_at TIMESTAMPTZ,
+      is_live BOOLEAN NOT NULL DEFAULT FALSE,
+      UNIQUE(game_id, version)
+    );
+
+    ALTER TABLE games ADD COLUMN IF NOT EXISTS owner_id TEXT REFERENCES users(id);
+    ALTER TABLE games ADD COLUMN IF NOT EXISTS description TEXT;
+    ALTER TABLE games ADD COLUMN IF NOT EXISTS tags JSONB NOT NULL DEFAULT '[]'::jsonb;
+    ALTER TABLE games ADD COLUMN IF NOT EXISTS publishing_status TEXT NOT NULL DEFAULT 'published';
+    ALTER TABLE games ADD COLUMN IF NOT EXISTS review_notes TEXT;
+    ALTER TABLE games ADD COLUMN IF NOT EXISTS reviewed_by TEXT REFERENCES users(id);
+    ALTER TABLE games ADD COLUMN IF NOT EXISTS submitted_at TIMESTAMPTZ;
+    ALTER TABLE games ADD COLUMN IF NOT EXISTS reviewed_at TIMESTAMPTZ;
+    ALTER TABLE games ADD COLUMN IF NOT EXISTS published_at TIMESTAMPTZ;
+    ALTER TABLE game_uploads ADD COLUMN IF NOT EXISTS file_kind TEXT NOT NULL DEFAULT 'build';
+    ALTER TABLE game_uploads ADD COLUMN IF NOT EXISTS release_id TEXT REFERENCES game_releases(id) ON DELETE CASCADE;
+    ALTER TABLE game_releases ADD COLUMN IF NOT EXISTS store_changes JSONB NOT NULL DEFAULT '{}'::jsonb;
+
     CREATE TABLE IF NOT EXISTS ownership (
       key_id TEXT PRIMARY KEY,
       game_id TEXT NOT NULL REFERENCES games(id),
@@ -93,6 +133,22 @@ async function initDb() {
       sale_price_cents INTEGER CHECK (sale_price_cents IS NULL OR sale_price_cents > 0),
       created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS disc_exports (
+      id TEXT PRIMARY KEY,
+      key_id TEXT NOT NULL REFERENCES ownership(key_id),
+      owner_id TEXT NOT NULL REFERENCES users(id),
+      game_id TEXT NOT NULL REFERENCES games(id),
+      certificate_id TEXT NOT NULL UNIQUE,
+      status TEXT NOT NULL DEFAULT 'prepared',
+      created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      downloaded_at TIMESTAMPTZ,
+      activated_at TIMESTAMPTZ,
+      UNIQUE(key_id)
+    );
+
+    ALTER TABLE ownership ADD COLUMN IF NOT EXISTS license_medium TEXT NOT NULL DEFAULT 'digital';
+    ALTER TABLE ownership ADD COLUMN IF NOT EXISTS digital_disabled_at TIMESTAMPTZ;
 
     CREATE TABLE IF NOT EXISTS payment_methods (
       id TEXT PRIMARY KEY,

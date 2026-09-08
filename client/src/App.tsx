@@ -4,7 +4,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import './App.css';
 
 // VERSION RULE: increment SITE_VERSION for every published site update.
-const SITE_VERSION = 'V6';
+const SITE_VERSION = 'V8';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 const IS_PUBLIC_DEMO = window.location.hostname.endsWith('github.io') || new URLSearchParams(window.location.search).has('demo');
@@ -34,6 +34,38 @@ const popularGames = [
   { title: 'Skyline Drift', image: '/space_explorer.jpg' }
 ];
 const MAX_AVATAR_ANIMATIONS = 5;
+const GAME_UPLOAD_ACCEPT = [
+  '.zip', '.7z', '.rar', '.tar', '.gz', '.tgz', '.bz2', '.xz',
+  '.exe', '.msi', '.msix', '.appx', '.appxbundle', '.dmg', '.pkg', '.deb', '.rpm', '.appimage',
+  '.apk', '.aab', '.ipa', '.xci', '.nsp', '.html', '.htm', '.wasm', '.jar', '.love', '.nw',
+  '.iso', '.bin', '.cue', '.img', '.pak', '.vpk', '.wad', '.pk3', '.obb', '.dll', '.so', '.dylib',
+  '.unitypackage', '.unity', '.asset', '.prefab', '.mat', '.controller', '.anim', '.uproject', '.uplugin',
+  '.godot', '.pck', '.tscn', '.scn', '.tres', '.res', '.yyp', '.yy', '.c3p', '.capx', '.rpy', '.rpyc',
+  '.rpgproject', '.rmmzproject', '.rmmvproject', '.project', '.collection', '.atlas', '.tmx', '.ase', '.aseprite', '.spine', '.skel', '.bytes',
+  '.blend', '.blend1', '.fbx', '.obj', '.dae', '.3ds', '.stl', '.gltf', '.glb',
+  '.png', '.jpg', '.jpeg', '.webp', '.tga', '.tif', '.tiff', '.bmp', '.psd', '.kra', '.svg', '.dds', '.ktx', '.ktx2', '.exr', '.hdr',
+  '.wav', '.mp3', '.ogg', '.oga', '.flac', '.aac', '.m4a', '.opus', '.mid', '.midi', '.mp4', '.webm', '.mov', '.avi', '.mkv', '.ogv',
+  '.json', '.xml', '.yaml', '.yml', '.toml', '.ini', '.cfg', '.csv', '.txt', '.md',
+  '.cs', '.cpp', '.c', '.h', '.hpp', '.js', '.ts', '.tsx', '.jsx', '.lua', '.py', '.gd', '.shader', '.hlsl', '.glsl', '.wgsl'
+].join(',');
+const MAX_GAME_FILES = 20;
+const STORE_PLACEHOLDERS = {
+  cover: '/store-placeholders/sci-fi-cover.png',
+  screenshot: '/store-placeholders/neon-racing-screen.png',
+  trailer: '/store-placeholders/fantasy-trailer-poster.png'
+};
+
+const formatBytes = (bytes: number) => {
+  if (bytes < 1024) return `${bytes} B`;
+  const units = ['KB', 'MB', 'GB', 'TB'];
+  let value = bytes / 1024;
+  let unit = units[0];
+  for (let index = 1; index < units.length && value >= 1024; index += 1) {
+    value /= 1024;
+    unit = units[index];
+  }
+  return `${value >= 10 ? value.toFixed(0) : value.toFixed(1)} ${unit}`;
+};
 
 const demoUser: CurrentUser = {
   id: 'user1',
@@ -110,6 +142,7 @@ interface LibraryItem {
   game: Game;
   isListedForSale: boolean;
   salePrice?: number;
+  licenseMedium?: 'digital' | 'disc';
 }
 
 interface MarketplaceListing {
@@ -117,6 +150,24 @@ interface MarketplaceListing {
   game: Game;
   sellerId: string;
   salePrice: number;
+}
+
+interface PublishingGame extends Game {
+  description: string;
+  tags: string[];
+  publishingStatus: 'pending_review' | 'approved' | 'rejected' | 'published';
+  reviewNotes?: string;
+  ownerUsername?: string;
+  media: Array<{ name: string; kind: 'build' | 'cover' | 'screenshot' | 'video'; size: number; url?: string; reviewPath?: string }>;
+  releases: Array<{
+    id: string;
+    version: string;
+    releaseNotes: string;
+    reviewStatus: 'pending_review' | 'approved' | 'rejected' | 'released';
+    reviewNotes?: string;
+    isLive: boolean;
+    media: PublishingGame['media'];
+  }>;
 }
 
 interface CurrentUser {
@@ -614,9 +665,12 @@ function AvatarRigViewer({
 }
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'library' | 'marketplace' | 'developer'>('marketplace');
+  const [activeTab, setActiveTab] = useState<'library' | 'marketplace' | 'developer' | 'review'>('marketplace');
   const [library, setLibrary] = useState<LibraryItem[]>([]);
   const [, setMarketplace] = useState<MarketplaceListing[]>([]);
+  const [storeGames, setStoreGames] = useState<PublishingGame[]>([]);
+  const [developerGames, setDeveloperGames] = useState<PublishingGame[]>([]);
+  const [reviewGames, setReviewGames] = useState<PublishingGame[]>([]);
   const [activeDashboardCard, setActiveDashboardCard] = useState(0);
   const [cosmicZoom, setCosmicZoom] = useState(1);
   const [avatarRig, setAvatarRig] = useState<AvatarRig | null>(null);
@@ -630,9 +684,13 @@ function App() {
   const [avatarTheme, setAvatarTheme] = useState(() => localStorage.getItem(AVATAR_THEME_KEY) || 'original');
   const [storeOpen, setStoreOpen] = useState(false);
   const [popularGameIndex, setPopularGameIndex] = useState(0);
-  const [popularVideoUrl, setPopularVideoUrl] = useState<string | null>(null);
+  const popularVideoUrl: string | null = null;
   const selectedAvatarTheme = avatarThemes.find((theme) => theme.id === avatarTheme) || avatarThemes[0];
   const avatarInputRef = useRef<HTMLInputElement>(null);
+  const gameInputRef = useRef<HTMLInputElement>(null);
+  const [gameFiles, setGameFiles] = useState<File[]>([]);
+  const [isDraggingGameFiles, setIsDraggingGameFiles] = useState(false);
+  const [isUploadingGame, setIsUploadingGame] = useState(false);
   
   const [contextMenu, setContextMenu] = useState<{ x: number, y: number, item: LibraryItem | null } | null>(null);
   const [sellModal, setSellModal] = useState<LibraryItem | null>(null);
@@ -644,7 +702,7 @@ function App() {
 
   const apiFetch = async (path: string, options: RequestInit = {}) => {
     const headers = new Headers(options.headers);
-    headers.set('Content-Type', 'application/json');
+    if (!(options.body instanceof FormData)) headers.set('Content-Type', 'application/json');
     if (token) headers.set('Authorization', `Bearer ${token}`);
 
     const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -690,6 +748,11 @@ function App() {
       fetchLibrary();
     } else if (activeTab === 'marketplace') {
       fetchMarketplace();
+      fetchStoreGames();
+    } else if (activeTab === 'developer') {
+      fetchDeveloperGames();
+    } else if (activeTab === 'review' && currentUser.role === 'admin') {
+      fetchReviewGames();
     }
   }, [activeTab, currentUser]);
 
@@ -723,6 +786,86 @@ function App() {
     }
   };
 
+  const fetchStoreGames = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/store/games`);
+      if (response.ok) setStoreGames(await response.json());
+    } catch (error) {
+      console.error('Failed to fetch Store games', error);
+    }
+  };
+
+  const fetchDeveloperGames = async () => {
+    if (IS_PUBLIC_DEMO) return;
+    const response = await apiFetch('/api/developer/games');
+    if (response.ok) setDeveloperGames(await response.json());
+  };
+
+  const fetchReviewGames = async () => {
+    if (IS_PUBLIC_DEMO) return;
+    const response = await apiFetch('/api/admin/reviews');
+    if (response.ok) setReviewGames(await response.json());
+  };
+
+  const releaseGame = async (gameId: string) => {
+    const response = await apiFetch(`/api/developer/games/${gameId}/release`, { method: 'POST', body: JSON.stringify({}) });
+    const result = await response.json();
+    alert(result.message || result.error);
+    if (response.ok) fetchDeveloperGames();
+  };
+
+  const reviewGame = async (gameId: string, decision: 'approve' | 'reject') => {
+    const notes = window.prompt(decision === 'approve' ? 'Optional notes for the developer:' : 'Why did this game fail review?') ?? '';
+    if (decision === 'reject' && !notes.trim()) return;
+    const response = await apiFetch(`/api/admin/reviews/${gameId}`, {
+      method: 'POST',
+      body: JSON.stringify({ decision, notes })
+    });
+    const result = await response.json();
+    alert(result.error || (decision === 'approve' ? 'Game passed review.' : 'Game failed review.'));
+    if (response.ok) fetchReviewGames();
+  };
+
+  const submitGameUpdate = async (event: React.FormEvent<HTMLFormElement>, gameId: string) => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const response = await apiFetch(`/api/developer/games/${gameId}/updates`, { method: 'POST', body: new FormData(form) });
+    const result = await response.json();
+    alert(result.message || result.error);
+    if (response.ok) {
+      form.reset();
+      fetchDeveloperGames();
+    }
+  };
+
+  const releaseGameUpdate = async (gameId: string, releaseId: string) => {
+    const response = await apiFetch(`/api/developer/games/${gameId}/releases/${releaseId}/release`, { method: 'POST', body: JSON.stringify({}) });
+    const result = await response.json();
+    alert(result.message || result.error);
+    if (response.ok) fetchDeveloperGames();
+  };
+
+  const reviewGameUpdate = async (releaseId: string, decision: 'approve' | 'reject') => {
+    const notes = window.prompt(decision === 'approve' ? 'Optional update-review notes:' : 'Why did this update fail review?') ?? '';
+    if (decision === 'reject' && !notes.trim()) return;
+    const response = await apiFetch(`/api/admin/releases/${releaseId}`, { method: 'POST', body: JSON.stringify({ decision, notes }) });
+    const result = await response.json();
+    alert(result.error || (decision === 'approve' ? 'Update passed review.' : 'Update failed review.'));
+    if (response.ok) fetchReviewGames();
+  };
+
+  const downloadReviewFile = async (file: PublishingGame['media'][number]) => {
+    if (!file.reviewPath) return;
+    const response = await apiFetch(file.reviewPath);
+    if (!response.ok) return alert('The review file could not be downloaded.');
+    const url = URL.createObjectURL(await response.blob());
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = file.name;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleContextMenu = (e: React.MouseEvent, item: LibraryItem) => {
     e.preventDefault();
     setContextMenu({ x: e.clientX, y: e.clientY, item });
@@ -739,11 +882,30 @@ function App() {
     closeContextMenu();
   };
 
-  const handleExportClick = () => {
-    if (contextMenu?.item) {
-      alert(`Exporting ${contextMenu.item.game.title} to ISO format for disk burning... \n\n(Simulated: creating DRM-free bundle)`);
-    }
+  const handleExportClick = async () => {
+    const item = contextMenu?.item;
     closeContextMenu();
+    if (!item) return;
+    if (IS_PUBLIC_DEMO) return alert('Disc conversion requires a live KeyStone account and backend.');
+    if (item.licenseMedium === 'disc') return alert('This license is already in disc mode. Insert your physical disc to play.');
+    if (!window.confirm(`Create an offline disc package for ${item.game.title}? Your digital copy remains active until you explicitly activate disc mode.`)) return;
+    const prepared = await apiFetch(`/api/library/${item.keyId}/disc/prepare`, { method: 'POST', body: JSON.stringify({}) });
+    const details = await prepared.json();
+    if (!prepared.ok) return alert(details.error || 'Disc conversion could not be prepared.');
+    const packageResponse = await apiFetch(details.downloadPath);
+    if (!packageResponse.ok) return alert('The offline disc package could not be downloaded.');
+    const url = URL.createObjectURL(await packageResponse.blob());
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${item.game.title.replace(/[^a-z0-9_-]+/gi, '-')}-offline-disc.zip`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    await apiFetch(`/api/library/disc/${details.exportId}/downloaded`, { method: 'POST', body: JSON.stringify({}) });
+    if (!window.confirm('Only continue after you have safely saved or burned the package. Activate disc mode now? This permanently disables digital launch and download for this license.')) return;
+    const activated = await apiFetch(`/api/library/disc/${details.exportId}/activate`, { method: 'POST', body: JSON.stringify({}) });
+    const result = await activated.json();
+    alert(result.message || result.error);
+    if (activated.ok) fetchLibrary();
   };
 
   const submitSell = async () => {
@@ -1000,6 +1162,11 @@ function App() {
       icon: 'upload-dot',
       action: () => setActiveTab('developer')
     },
+    ...(currentUser?.role === 'admin' ? [{
+      label: 'Review',
+      icon: 'settings-dot',
+      action: () => setActiveTab('review' as const)
+    }] : []),
     {
       label: 'Avatar',
       icon: 'avatar-dot',
@@ -1203,7 +1370,8 @@ function App() {
 
                 <div className="nxe-card-stack" aria-label="Dashboard menu">
                   {publicDashboardCards.map((card, index) => {
-                    const offset = (index - activeDashboardCard + publicDashboardCards.length) % publicDashboardCards.length;
+                    const half = Math.floor(publicDashboardCards.length / 2);
+                    const offset = ((index - activeDashboardCard + publicDashboardCards.length + half) % publicDashboardCards.length) - half;
                     return (
                       <div
                         role="button"
@@ -1211,7 +1379,8 @@ function App() {
                         className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Store' && index === activeDashboardCard ? 'store-popular-card' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''}`}
                         style={{
                           '--card-offset': offset,
-                          '--card-depth': offset,
+                          '--card-depth': Math.abs(offset),
+                          '--card-direction': Math.sign(offset),
                           '--orbit-index': index,
                           zIndex: 20 - offset,
                           ...(card.label === 'Settings' && index === activeDashboardCard ? {
@@ -1286,6 +1455,7 @@ function App() {
                     )}
                   </div>
                   {item.isListedForSale && <div className="status-badge">LISTED (${item.salePrice})</div>}
+                  {item.licenseMedium === 'disc' && <div className="status-badge">DISC LICENSE</div>}
                   <div className="game-info">
                     <div className="game-title">{item.game.title}</div>
                     <div className="game-dev" style={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1341,7 +1511,8 @@ function App() {
 
                     <div className="nxe-card-stack" aria-label="Dashboard menu">
                       {dashboardCards.map((card, index) => {
-                        const offset = (index - activeDashboardCard + dashboardCards.length) % dashboardCards.length;
+                        const half = Math.floor(dashboardCards.length / 2);
+                        const offset = ((index - activeDashboardCard + dashboardCards.length + half) % dashboardCards.length) - half;
                         return (
                           <div
                             role="button"
@@ -1349,7 +1520,8 @@ function App() {
                             className={`nxe-menu-card ${index === activeDashboardCard ? 'active' : ''} ${card.label === 'Store' && index === activeDashboardCard ? 'store-popular-card' : ''} ${card.label === 'Avatar' && index === activeDashboardCard ? 'avatar-controls-open' : ''}`}
                             style={{
                               '--card-offset': offset,
-                              '--card-depth': offset,
+                              '--card-depth': Math.abs(offset),
+                              '--card-direction': Math.sign(offset),
                               '--orbit-index': index,
                               zIndex: 20 - offset,
                               ...(card.label === 'Settings' && index === activeDashboardCard ? {
@@ -1380,8 +1552,38 @@ function App() {
                           <div><span className="store-kicker">KeyStone Store</span><h1>Find your next world.</h1></div>
                           <button type="button" onClick={() => setStoreOpen(false)}>Back</button>
                         </div>
-                        <div className="store-featured"><span>Featured drop</span><strong>Neon Horizon</strong><small>Explore a glowing city beyond the grid.</small><button type="button">View game · $29.99</button></div>
-                        <div className="store-rows"><div><span>New releases</span><b>4 titles this week</b></div><div><span>Most played</span><b>Community favorites</b></div><div><span>Deals</span><b>Up to 60% off</b></div></div>
+                        {storeGames.length ? (
+                          <div className="published-store-grid">
+                            {storeGames.map((game) => {
+                              const screenshots = game.media.filter((file) => file.kind === 'screenshot' && file.url);
+                              const trailer = game.media.find((file) => file.kind === 'video' && file.url);
+                              const cover = game.image ? (game.image.startsWith('/api/') ? `${API_BASE_URL}${game.image}` : game.image) : STORE_PLACEHOLDERS.cover;
+                              return <article className="published-store-card" key={game.id}>
+                                <div className="store-card-cover"><img src={cover} alt={`${game.title} cover`} />{!game.image && <span>Placeholder cover</span>}</div>
+                                <div>
+                                  <span>{game.genre || 'Game'}</span>
+                                  <strong>{game.title}</strong>
+                                  <small>{game.developer}</small>
+                                  <p>{game.description}</p>
+                                  <div className="store-tag-row">{game.tags.map((tag) => <b key={tag}>{tag}</b>)}</div>
+                                  <div className="store-media-strip">
+                                    {(screenshots.length ? screenshots.slice(0, 2) : [{ name: 'Gameplay placeholder', url: STORE_PLACEHOLDERS.screenshot }]).map((media) => (
+                                      <figure key={media.name}><img src={media.url?.startsWith('/api/') ? `${API_BASE_URL}${media.url}` : media.url} alt={`${game.title} gameplay`} />{screenshots.length === 0 && <figcaption>Gameplay placeholder</figcaption>}</figure>
+                                    ))}
+                                    {trailer ? (
+                                      <video controls preload="metadata" poster={STORE_PLACEHOLDERS.trailer}><source src={`${API_BASE_URL}${trailer.url}`} /></video>
+                                    ) : (
+                                      <figure className="trailer-placeholder"><img src={STORE_PLACEHOLDERS.trailer} alt="Trailer placeholder" /><span aria-hidden="true">▶</span><figcaption>Trailer coming soon</figcaption></figure>
+                                    )}
+                                  </div>
+                                  <button type="button">View game · ${game.price.toFixed(2)}</button>
+                                </div>
+                              </article>;
+                            })}
+                          </div>
+                        ) : (
+                          <div className="store-empty-state"><strong>No community releases yet</strong><span>Approved games will appear here after their developer releases them.</span></div>
+                        )}
                       </section>
                     )}
 
@@ -1405,27 +1607,42 @@ function App() {
             <div style={{ background: 'rgba(31, 40, 51, 0.7)', padding: '2rem', borderRadius: '12px', border: '1px solid rgba(102, 252, 241, 0.2)', maxWidth: '600px' }}>
               <form onSubmit={async (e) => {
                 e.preventDefault();
-                const formData = new FormData(e.target as HTMLFormElement);
-                const data = {
-                  title: formData.get('title'),
-                  developer: formData.get('developer'),
-                  price: formData.get('price'),
-                  genre: formData.get('genre')
-                };
+                if (!gameFiles.length) {
+                  alert('Choose at least one game build, package, project, or supporting file.');
+                  return;
+                }
+                const form = e.currentTarget;
+                const fields = new FormData(form);
+                const upload = new FormData();
+                for (const name of ['title', 'developer', 'price', 'genre', 'description', 'tags']) {
+                  const value = fields.get(name);
+                  if (typeof value === 'string') upload.append(name, value);
+                }
+                for (const file of gameFiles) upload.append('gameFiles', file, file.name);
+                for (const name of ['cover', 'screenshots', 'videos']) {
+                  for (const value of fields.getAll(name)) if (value instanceof File && value.size) upload.append(name, value, value.name);
+                }
                 try {
+                  setIsUploadingGame(true);
                   const res = await apiFetch('/api/developer/upload', {
                     method: 'POST',
-                    body: JSON.stringify(data)
+                    body: upload
                   });
                   if (res.ok) {
-                    alert('Game uploaded to catalog successfully!');
-                    (e.target as HTMLFormElement).reset();
+                    const result = await res.json();
+                    alert(`${result.fileCount || gameFiles.length} game file(s) uploaded to the catalog successfully!`);
+                    form.reset();
+                    setGameFiles([]);
+                    fetchDeveloperGames();
                   } else {
                     const error = await res.json().catch(() => ({ error: 'Upload failed' }));
                     alert(error.error || 'Upload failed');
                   }
                 } catch (err) {
                   console.error(err);
+                  alert('The upload could not reach the server. Please try again.');
+                } finally {
+                  setIsUploadingGame(false);
                 }
               }}>
                 <div style={{ marginBottom: '1.5rem' }}>
@@ -1446,38 +1663,122 @@ function App() {
                     <input name="genre" style={{ width: '100%', padding: '0.8rem', borderRadius: '8px', border: '1px solid #444', background: '#111', color: 'white' }} />
                   </div>
                 </div>
-                <div style={{ marginBottom: '2rem', padding: '1rem', background: '#0b0c10', borderRadius: '8px', border: '1px dashed #66fcf1' }}>
-                  <p style={{ color: '#66fcf1', margin: 0, textAlign: 'center' }}>Drag and drop game files (mocked)</p>
+                <div className="publishing-field">
+                  <label>Store description</label>
+                  <textarea name="description" required maxLength={5000} rows={5} placeholder="Describe the game, its key features, and what players can expect." />
                 </div>
-                <div style={{ marginBottom: '2rem' }}>
-                  <label style={{ display: 'block', marginBottom: '0.5rem', color: '#c5c6c7' }}>Most Popular Store Clip (10 seconds max)</label>
-                  <input
-                    name="storeClip"
-                    type="file"
-                    accept="video/mp4,video/webm,video/quicktime"
-                    onChange={(event) => {
-                      const file = event.target.files?.[0];
-                      if (!file) return;
-                      const url = URL.createObjectURL(file);
-                      const video = document.createElement('video');
-                      video.preload = 'metadata';
-                      video.onloadedmetadata = () => {
-                        URL.revokeObjectURL(url);
-                        if (video.duration > 10) {
-                          alert('Please choose a game clip that is 10 seconds or shorter.');
-                          event.target.value = '';
-                          return;
-                        }
-                        setPopularVideoUrl(URL.createObjectURL(file));
-                      };
-                      video.src = url;
+                <div className="publishing-field">
+                  <label>Tags</label>
+                  <input name="tags" placeholder="action, co-op, roguelike, controller support" />
+                  <small>Separate up to 12 tags with commas.</small>
+                </div>
+                <div className="game-upload-section">
+                  <label className="game-upload-label">Game files</label>
+                  <input ref={gameInputRef} className="game-file-input" name="gameFiles" type="file" accept={GAME_UPLOAD_ACCEPT} multiple onChange={(event) => setGameFiles(Array.from(event.target.files || []).slice(0, MAX_GAME_FILES))} />
+                  <div
+                    className={`game-drop-zone${isDraggingGameFiles ? ' is-dragging' : ''}`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => gameInputRef.current?.click()}
+                    onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') gameInputRef.current?.click(); }}
+                    onDragEnter={(event) => { event.preventDefault(); setIsDraggingGameFiles(true); }}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDragLeave={(event) => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setIsDraggingGameFiles(false); }}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      setIsDraggingGameFiles(false);
+                      setGameFiles(Array.from(event.dataTransfer.files).slice(0, MAX_GAME_FILES));
                     }}
-                    style={{ width: '100%', color: '#c5c6c7' }}
-                  />
-                  <small style={{ display: 'block', marginTop: '0.4rem', color: '#888' }}>MP4, WebM, or MOV. This clip previews on the rotating Most Popular card.</small>
+                  >
+                    <strong>{gameFiles.length ? `${gameFiles.length} file${gameFiles.length === 1 ? '' : 's'} ready` : 'Drop your game here'}</strong>
+                    <span>or click to browse · up to {MAX_GAME_FILES} files</span>
+                    <small>Builds, archives, installers, engine projects, web games, source, art, audio, and video</small>
+                  </div>
+                  {gameFiles.length > 0 && (
+                    <div className="game-file-list">
+                      {gameFiles.map((file, index) => (
+                        <div key={`${file.name}-${file.lastModified}-${index}`}>
+                          <span title={file.name}>{file.name}</span>
+                          <small>{formatBytes(file.size)}</small>
+                          <button type="button" aria-label={`Remove ${file.name}`} onClick={() => setGameFiles((files) => files.filter((_, fileIndex) => fileIndex !== index))}>×</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="game-upload-help">For folders (Unity, Unreal, Godot, GameMaker, RPG Maker, etc.), upload a ZIP, 7Z, RAR, or TAR archive so the project structure stays intact.</p>
                 </div>
-                <button type="submit" className="btn-primary" style={{ width: '100%' }}>Upload & Mint Keys</button>
+                <div className="store-media-fields">
+                  <div className="publishing-field"><label>Cover image</label><input name="cover" type="file" accept=".png,.jpg,.jpeg,.webp" /><small>PNG, JPG, or WebP</small></div>
+                  <div className="publishing-field"><label>Screenshots</label><input name="screenshots" type="file" accept=".png,.jpg,.jpeg,.webp" multiple /><small>Up to 10 images</small></div>
+                  <div className="publishing-field"><label>Trailers and clips</label><input name="videos" type="file" accept="video/mp4,video/webm,video/quicktime" multiple /><small>Up to 5 MP4, WebM, or MOV videos</small></div>
+                </div>
+                <button type="submit" className="btn-primary" style={{ width: '100%' }} disabled={isUploadingGame}>{isUploadingGame ? 'Submitting for review…' : 'Submit Game for Review'}</button>
               </form>
+            </div>
+            <section className="submission-section">
+              <h2>Your submissions</h2>
+              <div className="submission-list">
+                {developerGames.map((game) => (
+                  <article className="submission-card" key={game.id}>
+                    <div><span className={`publishing-status status-${game.publishingStatus}`}>{game.publishingStatus.replace('_', ' ')}</span><h3>{game.title}</h3><small>{game.media.filter((file) => file.kind === 'build').length} build file(s) · {game.tags.join(' · ') || 'No tags'}</small></div>
+                    {game.reviewNotes && <p><strong>Reviewer notes:</strong> {game.reviewNotes}</p>}
+                    {game.publishingStatus === 'approved' && <button type="button" className="btn-primary" onClick={() => releaseGame(game.id)}>Release to Store</button>}
+                    {game.publishingStatus === 'pending_review' && <p>Waiting for administrator review.</p>}
+                    {game.publishingStatus === 'published' && <p>Live in the KeyStone Store.</p>}
+                    {game.releases.map((release) => (
+                      <div className="release-row" key={release.id}>
+                        <div><strong>Version {release.version}</strong> {release.isLive && <span className="live-version">LIVE</span>}<small>{release.releaseNotes}</small></div>
+                        <span className={`publishing-status status-${release.reviewStatus}`}>{release.reviewStatus.replace('_', ' ')}</span>
+                        {release.reviewNotes && <p><strong>Review:</strong> {release.reviewNotes}</p>}
+                        {game.publishingStatus === 'published' && release.reviewStatus === 'approved' && <button type="button" className="btn-primary" onClick={() => releaseGameUpdate(game.id, release.id)}>Release This Update</button>}
+                      </div>
+                    ))}
+                    {game.publishingStatus === 'published' && !game.releases.some((release) => !release.isLive && ['pending_review', 'approved'].includes(release.reviewStatus)) && (
+                      <details className="update-panel">
+                        <summary>Upload a new version</summary>
+                        <form onSubmit={(event) => submitGameUpdate(event, game.id)}>
+                          <div className="update-field-row"><label>Version<input name="version" required maxLength={30} placeholder="1.1.0" /></label><label>New price (optional)<input name="price" type="number" min="0" step="0.01" /></label></div>
+                          <label>Release notes<textarea name="releaseNotes" required rows={4} placeholder="What changed in this version?" /></label>
+                          <label>Replacement game build<input name="gameFiles" type="file" accept={GAME_UPLOAD_ACCEPT} multiple required /></label>
+                          <label>Updated description (optional)<textarea name="description" rows={3} /></label>
+                          <div className="update-field-row"><label>Updated genre<input name="genre" /></label><label>Updated tags<input name="tags" placeholder="co-op, action" /></label></div>
+                          <div className="update-field-row"><label>New cover<input name="cover" type="file" accept=".png,.jpg,.jpeg,.webp" /></label><label>New screenshots<input name="screenshots" type="file" accept=".png,.jpg,.jpeg,.webp" multiple /></label><label>New videos<input name="videos" type="file" accept="video/mp4,video/webm,video/quicktime" multiple /></label></div>
+                          <button type="submit" className="btn-primary">Submit Update for Review</button>
+                        </form>
+                      </details>
+                    )}
+                  </article>
+                ))}
+                {!developerGames.length && <p className="hint-text">No submissions yet.</p>}
+              </div>
+            </section>
+          </div>
+        )}
+        {activeTab === 'review' && currentUser.role === 'admin' && (
+          <div className="review-view">
+            <button className="btn-secondary back-to-store" onClick={() => setActiveTab('marketplace')}>Back to Store</button>
+            <h1>Game Review Queue</h1>
+            <p className="hint-text">Inspect the submitted builds and store media, then pass or fail each game. Passing returns release control to the developer.</p>
+            <div className="submission-list">
+              {reviewGames.map((game) => (
+                <article className="submission-card review-card" key={game.id}>
+                  <div><span className={`publishing-status status-${game.publishingStatus}`}>{game.publishingStatus.replace('_', ' ')}</span><h2>{game.title}</h2><small>Submitted by {game.ownerUsername || game.developer}</small></div>
+                  <p>{game.description}</p>
+                  <div className="store-tag-row">{game.tags.map((tag) => <b key={tag}>{tag}</b>)}</div>
+                  <div className="review-files">{game.media.map((file) => <span key={`${file.kind}-${file.name}`}><b>{file.kind}</b> {file.name} ({formatBytes(file.size)}) <button type="button" onClick={() => downloadReviewFile(file)}>Download</button></span>)}</div>
+                  {game.publishingStatus === 'pending_review' && <div className="review-actions"><button type="button" className="btn-primary" onClick={() => reviewGame(game.id, 'approve')}>Pass Review</button><button type="button" className="btn-danger" onClick={() => reviewGame(game.id, 'reject')}>Fail Review</button></div>}
+                  {game.reviewNotes && <p><strong>Review notes:</strong> {game.reviewNotes}</p>}
+                  {game.releases.filter((release) => release.reviewStatus === 'pending_review' && game.publishingStatus === 'published').map((release) => (
+                    <section className="update-review" key={release.id}>
+                      <h3>Update {release.version}</h3>
+                      <p>{release.releaseNotes}</p>
+                      <div className="review-files">{release.media.map((file) => <span key={`${file.kind}-${file.name}`}><b>{file.kind}</b> {file.name} ({formatBytes(file.size)}) <button type="button" onClick={() => downloadReviewFile(file)}>Download</button></span>)}</div>
+                      <div className="review-actions"><button type="button" className="btn-primary" onClick={() => reviewGameUpdate(release.id, 'approve')}>Pass Update</button><button type="button" className="btn-danger" onClick={() => reviewGameUpdate(release.id, 'reject')}>Fail Update</button></div>
+                    </section>
+                  ))}
+                </article>
+              ))}
+              {!reviewGames.length && <p className="hint-text">The review queue is empty.</p>}
             </div>
           </div>
         )}
@@ -1488,13 +1789,13 @@ function App() {
           className="context-menu" 
           style={{ top: contextMenu.y, left: contextMenu.x }}
         >
-          <div className="context-menu-item" onClick={() => { alert('Launching game...'); closeContextMenu(); }}>Play</div>
+          <div className="context-menu-item" onClick={() => { alert(contextMenu.item?.licenseMedium === 'disc' ? 'Insert the physical game disc to launch this license.' : 'Launching digital game...'); closeContextMenu(); }}>Play</div>
           <div className="context-menu-item" onClick={() => { alert('Installing game...'); closeContextMenu(); }}>Install</div>
           <div className="context-menu-divider"></div>
           {!contextMenu.item.isListedForSale && (
             <div className="context-menu-item" onClick={handleSellClick}>Sell on Marketplace</div>
           )}
-          <div className="context-menu-item" onClick={handleExportClick}>Export to ISO (Disk)</div>
+          <div className="context-menu-item" onClick={handleExportClick}>{contextMenu.item.licenseMedium === 'disc' ? 'Disc Mode Active' : 'Create Offline Disc Package'}</div>
         </div>
       )}
 

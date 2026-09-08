@@ -2978,13 +2978,17 @@ button:disabled {
 }
 }
 
-/* User-selected dashboard artwork is applied last so it works with every theme. */
-.app-container.has-custom-dashboard-background .nxe-scene,
-.app-container.has-custom-dashboard-background .public-nxe-scene,
-.app-container.has-custom-dashboard-background .nxe-menu-only-scene {
+/* User artwork is clipped to the wall; the gray dashboard floor stays unchanged. */
+.app-container.has-custom-dashboard-background .nxe-scene::before,
+.app-container.has-custom-dashboard-background .public-nxe-scene::before,
+.app-container.has-custom-dashboard-background .nxe-menu-only-scene::before {
+  inset: 0 0 53% 0;
+  z-index: 0;
+  opacity: 1;
   background:
-    linear-gradient(180deg, rgba(16,49,8,.16) 0%, rgba(35,77,11,.12) 43%, rgba(24,34,39,.5) 100%),
+    linear-gradient(180deg, rgba(16,49,8,.12), rgba(35,77,11,.18)),
     var(--dashboard-background-image) center / cover no-repeat !important;
+  mask-image: none;
+  transform: none;
+  filter: none;
 }
-
-.app-container.has-custom-dashboard-background .nxe-scene::before { opacity: .3; }

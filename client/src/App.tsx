@@ -703,9 +703,11 @@ function OrbitalCrystal() {
     mount.addEventListener('pointermove', onPointerMove);
     const resize = () => { const width = Math.max(1, mount.clientWidth); const height = Math.max(1, mount.clientHeight); renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix(); };
     const observer = new ResizeObserver(resize); observer.observe(mount); resize();
-    const clock = new THREE.Clock();
-    const animate = () => {
-      const time = clock.getElapsedTime();
+    const timer = new THREE.Timer();
+    timer.connect(document);
+    const animate = (timestamp?: number) => {
+      timer.update(timestamp);
+      const time = timer.getElapsed();
       assembly.rotation.y += ((pointer.x * .24 + time * .16) - assembly.rotation.y) * .025;
       assembly.rotation.x += ((-pointer.y * .16 + Math.sin(time * .55) * .08) - assembly.rotation.x) * .035;
       shell.rotation.z = Math.sin(time * .42) * .16;
@@ -718,7 +720,7 @@ function OrbitalCrystal() {
       frameId = requestAnimationFrame(animate);
     };
     animate();
-    return () => { cancelAnimationFrame(frameId); observer.disconnect(); mount.removeEventListener('pointermove', onPointerMove); renderer.dispose(); shell.geometry.dispose(); wire.geometry.dispose(); core.geometry.dispose(); shardGeometry.dispose(); particleGeometry.dispose(); mount.removeChild(renderer.domElement); };
+    return () => { cancelAnimationFrame(frameId); timer.dispose(); observer.disconnect(); mount.removeEventListener('pointermove', onPointerMove); renderer.dispose(); shell.geometry.dispose(); wire.geometry.dispose(); core.geometry.dispose(); shardGeometry.dispose(); particleGeometry.dispose(); mount.removeChild(renderer.domElement); };
   }, []);
 
   return <div className="orbital-crystal-canvas" ref={mountRef} aria-hidden="true" />;

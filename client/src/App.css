@@ -55,11 +55,13 @@
 .track-outer::before,.track-outer::after { content:""; position:absolute; inset:-7px; border-radius:50%; border-top:2px solid #65e4ff; border-right:2px solid transparent; border-bottom:2px solid #ff7f94; border-left:2px solid transparent; filter:drop-shadow(0 0 7px currentColor); animation:orbit-spin 20s linear infinite; }
 .track-outer::after { inset:14%; border-top-color:#a877ff; border-bottom-color:#65e4ff; animation-direction:reverse; animation-duration:14s; }
 .track-inner { inset:28%; border-style:dashed; animation:orbit-spin 32s linear infinite; }
-.keystone-core { position:absolute; inset:31%; filter:drop-shadow(0 0 35px rgba(110,204,255,.66)); animation:core-float 5s ease-in-out infinite; }
-.keystone-core i { position:absolute; inset:12%; clip-path:polygon(50% 0,100% 36%,82% 100%,18% 100%,0 36%); background:linear-gradient(145deg,rgba(124,245,255,.92),rgba(122,83,255,.62) 45%,rgba(255,122,150,.82)); border-radius:18%; }
-.keystone-core i:nth-child(2) { inset:24%; transform:rotate(72deg); background:linear-gradient(160deg,rgba(255,255,255,.85),rgba(68,213,255,.15)); }
-.keystone-core i:nth-child(3) { inset:34%; transform:rotate(-35deg); background:linear-gradient(145deg,#ff94a7,#7664ff); }
-.keystone-core span { position:absolute; inset:3%; border:1px solid rgba(255,255,255,.38); clip-path:polygon(50% 0,100% 36%,82% 100%,18% 100%,0 36%); }
+.keystone-core { position:absolute; inset:31%; filter:drop-shadow(0 0 35px rgba(110,204,255,.66)); animation:core-float 5s ease-in-out infinite,core-turn 18s linear infinite; transform-style:preserve-3d; will-change:transform,filter; }
+.keystone-core::before,.keystone-core::after { content:""; position:absolute; inset:-10%; border-radius:50%; border:1px solid rgba(105,225,255,.26); border-left-color:#ff8198; border-right-color:#9a78ff; animation:crystal-halo 7s ease-in-out infinite; }
+.keystone-core::after { inset:-20%; opacity:.35; border-style:dashed; animation:crystal-halo 11s ease-in-out infinite reverse; }
+.keystone-core i { position:absolute; inset:12%; clip-path:polygon(50% 0,100% 36%,82% 100%,18% 100%,0 36%); background:linear-gradient(145deg,rgba(124,245,255,.92),rgba(122,83,255,.62) 45%,rgba(255,122,150,.82)); background-size:220% 220%; border-radius:18%; animation:facet-shimmer 6s ease-in-out infinite; }
+.keystone-core i:nth-child(2) { inset:24%; background:linear-gradient(160deg,rgba(255,255,255,.85),rgba(68,213,255,.15)); animation:facet-counterturn 9s ease-in-out infinite; }
+.keystone-core i:nth-child(3) { inset:34%; background:linear-gradient(145deg,#ff94a7,#7664ff); animation:facet-pulse 4.5s ease-in-out infinite; }
+.keystone-core span { position:absolute; inset:3%; border:1px solid rgba(255,255,255,.38); clip-path:polygon(50% 0,100% 36%,82% 100%,18% 100%,0 36%); animation:facet-outline 3.6s ease-in-out infinite; }
 .orbit-node { position:absolute; display:grid; place-items:center; gap:5px; width:86px; padding:0; color:#dceeff; border:0; background:transparent; cursor:pointer; transform:translate(-50%,-50%); }
 .orbit-node::before { content:""; grid-area:1/1; width:58px; height:58px; border:1px solid rgba(117,229,255,.58); border-radius:50%; background:rgba(6,21,44,.88); box-shadow:0 0 18px rgba(60,188,255,.2),inset 0 0 18px rgba(91,183,255,.12); transition:.25s ease; }
 .orbit-node:hover::before,.orbit-node.active::before { transform:scale(1.12); border-color:#fff; box-shadow:0 0 25px rgba(76,216,255,.6),inset 0 0 16px rgba(255,121,148,.18); }
@@ -79,7 +81,14 @@
 .orbital-settings { position:absolute; z-index:55; right:30px; bottom:28px; width:min(420px,calc(100vw - 60px)); max-height:55vh; overflow:auto; padding:20px; border:1px solid rgba(114,228,255,.38); border-radius:16px; background:rgba(5,14,31,.94); box-shadow:0 22px 65px rgba(0,0,0,.55); backdrop-filter:blur(20px); }
 .orbital-settings > button { float:right; width:32px; height:32px; padding:0; border-radius:50%; color:white; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); }
 @keyframes orbit-spin { to { transform:rotate(360deg); } }
-@keyframes core-float { 50% { transform:translateY(-8px) rotate(3deg) scale(1.03); } }
+@keyframes core-float { 0%,100% { translate:0 0; } 50% { translate:0 -10px; } }
+@keyframes core-turn { 0% { rotate:0deg; } 25% { rotate:2deg; } 50% { rotate:0deg; } 75% { rotate:-2deg; } 100% { rotate:0deg; } }
+@keyframes crystal-halo { 0%,100% { transform:rotate(0deg) scale(.94); opacity:.22; } 50% { transform:rotate(180deg) scale(1.08); opacity:.7; } }
+@keyframes facet-shimmer { 0%,100% { transform:rotate(-4deg) skewX(-2deg); background-position:0 0; } 50% { transform:rotate(5deg) skewX(3deg) scale(1.06); background-position:100% 100%; } }
+@keyframes facet-counterturn { 0%,100% { transform:rotate(68deg) scale(.96); } 50% { transform:rotate(86deg) scale(1.08); } }
+@keyframes facet-pulse { 0%,100% { transform:rotate(-38deg) scale(.9); filter:hue-rotate(0deg) brightness(.95); } 50% { transform:rotate(-22deg) scale(1.12); filter:hue-rotate(22deg) brightness(1.2); } }
+@keyframes facet-outline { 0%,100% { transform:rotate(0deg) scale(.96); opacity:.34; } 50% { transform:rotate(-9deg) scale(1.05); opacity:.88; } }
+@media (prefers-reduced-motion:reduce) { .keystone-core,.keystone-core::before,.keystone-core::after,.keystone-core i,.keystone-core span,.track-outer::before,.track-outer::after,.track-inner { animation:none !important; } }
 @media (max-width:900px) { .orbital-copy { width:220px; }.orbital-copy p { display:none; }.orbital-system { width:68vw; left:52%; }.orbital-discovery { display:none; }.orbital-avatar-showcase { left:20px; width:190px; height:270px; }.orbital-avatar-showcase .avatar-rig-viewer { height:270px; }.public-orbital-hub .orbital-system { top:43%; }.orbital-auth-panel { left:50%; right:auto; bottom:18px; transform:translateX(-50%); width:min(440px,calc(100vw - 36px)); } }
 @media (max-width:620px) { .orbital-header { inset:18px; }.orbital-copy { top:88px; left:20px; }.orbital-copy h1 { font-size:1.8rem; }.orbital-system { width:94vw; left:50%; top:48%; }.orbit-node::before { width:48px; height:48px; }.orbit-node span { font-size:.6rem; }.orbital-avatar-showcase { width:145px; height:210px; left:12px; }.orbital-avatar-showcase .avatar-rig-viewer { height:210px; }.public-orbital-hub .orbital-system { top:39%; }.public-orbital-hub .orbital-copy { display:none; } }
 

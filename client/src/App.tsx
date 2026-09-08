@@ -17,6 +17,19 @@ const AVATAR_THEME_KEY = 'keystoneAvatarTheme';
 const DASHBOARD_BACKGROUND_DB = 'keystone-dashboard-background';
 const DASHBOARD_BACKGROUND_STORE = 'backgrounds';
 const DASHBOARD_BACKGROUND_RECORD = 'activeBackground';
+const HUB_PREFERENCES_KEY = 'keystoneHubPreferences';
+
+interface HubPreferences {
+  galaxyEnabled: boolean;
+  galaxySpeed: number;
+  galaxyIntensity: number;
+  pointerMotion: boolean;
+  avatarVisible: boolean;
+  avatarScale: number;
+  backgroundDim: number;
+}
+
+const DEFAULT_HUB_PREFERENCES: HubPreferences = { galaxyEnabled: true, galaxySpeed: 1, galaxyIntensity: 1, pointerMotion: true, avatarVisible: true, avatarScale: 1, backgroundDim: .32 };
 
 const avatarThemes = [
   { id: 'original', name: 'Original', colors: ['#5f9f28', '#b1ff57', '#d5ff41'], card: '#5f9f28', stage: '#9dce70', accent: '#b1ff57', outfit: '#d5ff41' },
@@ -629,7 +642,7 @@ function WorldModel({ onSelect }: { onSelect: (label: string) => void }) {
 // CSS-rendered orbital core.
 void WorldModel;
 
-function OrbitalCrystal() {
+function OrbitalCrystal({ speed, intensity, pointerMotion }: { speed: number; intensity: number; pointerMotion: boolean }) {
   const mountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -650,7 +663,7 @@ function OrbitalCrystal() {
     const assembly = new THREE.Group();
     assembly.rotation.x = -.22;
     scene.add(assembly);
-    const particleCount = 3200;
+    const particleCount = Math.round(1800 + intensity * 1800);
     const particlePositions = new Float32Array(particleCount * 3);
     const particleColors = new Float32Array(particleCount * 3);
     const cyan = new THREE.Color(0x67e8ff);
@@ -685,6 +698,7 @@ function OrbitalCrystal() {
 
     const pointer = new THREE.Vector2();
     const onPointerMove = (event: PointerEvent) => {
+      if (!pointerMotion) return;
       const rect = mount.getBoundingClientRect();
       pointer.set(((event.clientX - rect.left) / rect.width - .5) * 2, -((event.clientY - rect.top) / rect.height - .5) * 2);
     };
@@ -698,9 +712,9 @@ function OrbitalCrystal() {
       const time = timer.getElapsed();
       assembly.rotation.y += ((pointer.x * .16) - assembly.rotation.y) * .025;
       assembly.rotation.x += ((-.22 - pointer.y * .12) - assembly.rotation.x) * .035;
-      particles.rotation.z = time * .075;
-      dust.rotation.z = time * .045;
-      ring.rotation.z = -time * .16;
+      particles.rotation.z = time * .075 * speed;
+      dust.rotation.z = time * .045 * speed;
+      ring.rotation.z = -time * .16 * speed;
       const pulse = 1 + Math.sin(time * 2.1) * .09;
       core.scale.set(pulse, pulse * .58, pulse * .45);
       coreGlow.scale.set(pulse * 1.08, pulse * .58, pulse * .44);
@@ -709,7 +723,7 @@ function OrbitalCrystal() {
     };
     animate();
     return () => { cancelAnimationFrame(frameId); timer.dispose(); observer.disconnect(); mount.removeEventListener('pointermove', onPointerMove); renderer.dispose(); core.geometry.dispose(); coreGlow.geometry.dispose(); ring.geometry.dispose(); particleGeometry.dispose(); dustGeometry.dispose(); mount.removeChild(renderer.domElement); };
-  }, []);
+  }, [speed, intensity, pointerMotion]);
 
   return <div className="orbital-crystal-canvas" ref={mountRef} aria-hidden="true" />;
 }
@@ -892,6 +906,18 @@ function App() {
   const [token, setToken] = useState(() => IS_PUBLIC_DEMO ? DEMO_TOKEN : (localStorage.getItem('authToken') || ''));
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(() => IS_PUBLIC_DEMO ? demoUser : null);
   const [authError, setAuthError] = useState('');
+  const [hubPreferences, setHubPreferences] = useState<HubPreferences>(() => {
+    try { return { ...DEFAULT_HUB_PREFERENCES, ...JSON.parse(localStorage.getItem(HUB_PREFERENCES_KEY) || '{}') }; }
+    catch { return DEFAULT_HUB_PREFERENCES; }
+  });
+
+  const updateHubPreference = <K extends keyof HubPreferences>(key: K, value: HubPreferences[K]) => {
+    setHubPreferences((current) => {
+      const next = { ...current, [key]: value };
+      localStorage.setItem(HUB_PREFERENCES_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
 
   const apiFetch = async (path: string, options: RequestInit = {}) => {
     const headers = new Headers(options.headers);
@@ -1384,7 +1410,7 @@ function App() {
           style={dashboardBackgroundUrl ? { backgroundImage: `url("${dashboardBackgroundUrl}")` } : undefined}
           aria-label={dashboardBackground?.fileName || 'Default dashboard background'}
         >
-          {!dashboardBackgroundUrl && <span>Default green</span>}
+          {!dashboardBackgroundUrl && <span>Orbital horizon</span>}
         </div>
         <div className="dashboard-background-actions">
           <button type="button" onClick={openDashboardBackgroundUpload}>Choose image</button>
@@ -1392,6 +1418,24 @@ function App() {
         </div>
         <small title={dashboardBackground?.fileName}>{dashboardBackground?.fileName || 'Saved only in this browser'}</small>
       </div>
+      <section className="hub-settings-group">
+        <span className="avatar-theme-label">Galaxy</span>
+        <label className="hub-toggle"><span>Show galaxy</span><input type="checkbox" checked={hubPreferences.galaxyEnabled} onChange={(event) => updateHubPreference('galaxyEnabled', event.target.checked)} /></label>
+        <label className="hub-range"><span>Rotation speed <b>{Math.round(hubPreferences.galaxySpeed * 100)}%</b></span><input type="range" min="0" max="2" step="0.1" value={hubPreferences.galaxySpeed} onChange={(event) => updateHubPreference('galaxySpeed', Number(event.target.value))} /></label>
+        <label className="hub-range"><span>Star density <b>{Math.round(hubPreferences.galaxyIntensity * 100)}%</b></span><input type="range" min="0.4" max="1.5" step="0.1" value={hubPreferences.galaxyIntensity} onChange={(event) => updateHubPreference('galaxyIntensity', Number(event.target.value))} /></label>
+        <label className="hub-toggle"><span>Pointer parallax</span><input type="checkbox" checked={hubPreferences.pointerMotion} onChange={(event) => updateHubPreference('pointerMotion', event.target.checked)} /></label>
+      </section>
+      <section className="hub-settings-group">
+        <span className="avatar-theme-label">Avatar</span>
+        <label className="hub-toggle"><span>Show avatar</span><input type="checkbox" checked={hubPreferences.avatarVisible} onChange={(event) => updateHubPreference('avatarVisible', event.target.checked)} /></label>
+        <label className="hub-range"><span>Avatar size <b>{Math.round(hubPreferences.avatarScale * 100)}%</b></span><input type="range" min="0.65" max="1.3" step="0.05" value={hubPreferences.avatarScale} onChange={(event) => updateHubPreference('avatarScale', Number(event.target.value))} /></label>
+        <button type="button" className="hub-settings-action" onClick={openAvatarUpload}>Choose avatar rig</button>
+      </section>
+      <section className="hub-settings-group">
+        <span className="avatar-theme-label">Environment</span>
+        <label className="hub-range"><span>Background shading <b>{Math.round(hubPreferences.backgroundDim * 100)}%</b></span><input type="range" min="0" max="0.75" step="0.05" value={hubPreferences.backgroundDim} onChange={(event) => updateHubPreference('backgroundDim', Number(event.target.value))} /></label>
+        <button type="button" className="hub-settings-action reset" onClick={() => { setHubPreferences(DEFAULT_HUB_PREFERENCES); localStorage.setItem(HUB_PREFERENCES_KEY, JSON.stringify(DEFAULT_HUB_PREFERENCES)); }}>Reset hub settings</button>
+      </section>
     </div>
   );
 
@@ -1647,6 +1691,8 @@ function App() {
   const dashboardPageStyle = {
     '--page-theme': selectedAvatarTheme.card,
     '--page-accent': selectedAvatarTheme.accent,
+    '--hub-background-dim': hubPreferences.backgroundDim,
+    '--hub-avatar-scale': hubPreferences.avatarScale,
     ...(dashboardBackgroundUrl ? { '--dashboard-background-image': `url("${dashboardBackgroundUrl}")` } : {})
   } as React.CSSProperties;
 
@@ -1673,7 +1719,7 @@ function App() {
                 <div className="orbital-copy"><span>ORBITAL HUB</span><h1>Your games.<br/>One universe.</h1><p>Discover new worlds, build your library, and make a place of your own.</p></div>
                 <div className="orbital-system" aria-label="KeyStone navigation">
                   <div className="orbital-track track-outer"></div><div className="orbital-track track-inner"></div>
-                  <div className="keystone-core"><OrbitalCrystal/><span className="core-aura"></span></div>
+                  <div className="keystone-core">{hubPreferences.galaxyEnabled && <OrbitalCrystal speed={hubPreferences.galaxySpeed} intensity={hubPreferences.galaxyIntensity} pointerMotion={hubPreferences.pointerMotion}/>}<span className="core-aura"></span></div>
                   {publicDashboardCards.map((card, index) => <button key={card.label} className={`orbit-node node-${index}`} onClick={() => card.label === 'Settings' ? setActiveDashboardCard(index) : card.action()}><OrbitalIcon kind={card.icon}/><span>{card.label}</span></button>)}
                 </div>
                 <div className="orbital-discovery"><span>DISCOVER NEW WORLDS</span>{popularGames.slice(0,3).map((game, index) => <button key={game.title} onClick={enterPublicDemo}><img src={game.image}/><div><strong>{game.title}</strong><small>{['Explore the unknown','A legend awakens','Race beyond light'][index]}</small></div></button>)}</div>
@@ -1775,16 +1821,16 @@ function App() {
                   <section className={`orbital-hub ${storeOpen ? 'store-open' : ''}`}>
                     <header className="orbital-header"><div className="keystone-brand"><i aria-hidden="true"></i><div><strong>KeyStone</strong><span>Play a brighter tomorrow</span></div></div><div className="orbital-user"><span>ONLINE</span><strong>{currentUser.username}</strong></div></header>
                     <div className="orbital-copy"><span>ORBITAL HUB</span><h1>Welcome back,<br/>{currentUser.username}.</h1><p>Your collection and creator tools, aligned in one universe.</p></div>
-                    <div className="orbital-avatar-showcase" aria-label={`${currentUser.username} avatar`}>
+                    {hubPreferences.avatarVisible && <div className="orbital-avatar-showcase" aria-label={`${currentUser.username} avatar`}>
                       {dashboardAvatar}
-                    </div>
+                    </div>}
                     <div className="orbital-system" aria-label="KeyStone navigation">
                       <div className="orbital-track track-outer"></div><div className="orbital-track track-inner"></div>
-                      <div className="keystone-core"><OrbitalCrystal/><span className="core-aura"></span></div>
+                      <div className="keystone-core">{hubPreferences.galaxyEnabled && <OrbitalCrystal speed={hubPreferences.galaxySpeed} intensity={hubPreferences.galaxyIntensity} pointerMotion={hubPreferences.pointerMotion}/>}<span className="core-aura"></span></div>
                       {dashboardCards.map((card, index) => <button key={card.label} className={`orbit-node node-${index} ${index === activeDashboardCard ? 'active' : ''}`} onClick={() => { setActiveDashboardCard(index); if(card.label !== 'Settings') card.action(); }}><OrbitalIcon kind={card.icon}/><span>{card.label}</span></button>)}
                     </div>
                     <div className="orbital-discovery"><span>DISCOVER NEW WORLDS</span>{popularGames.slice(0,3).map((game, index) => <button key={game.title} onClick={openStore}><img src={game.image}/><div><strong>{game.title}</strong><small>{['Explore the unknown','A legend awakens','Race beyond light'][index]}</small></div></button>)}</div>
-                    {isSettingsOpen && <aside className="orbital-settings"><button onClick={() => setActiveDashboardCard(0)}>×</button>{renderDashboardSettings()}</aside>}
+                    {isSettingsOpen && <aside className="orbital-settings"><header><div><span>CONTROL CENTER</span><strong>Hub settings</strong></div><button onClick={() => setActiveDashboardCard(0)} aria-label="Close settings">×</button></header>{renderDashboardSettings()}</aside>}
                     {storeOpen && (
                       <section className="store-overlay" aria-label="KeyStone Store">
                         <div className="store-overlay-header">

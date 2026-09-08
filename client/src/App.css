@@ -15,8 +15,8 @@
   overflow: hidden;
   color: #f5f7ff;
   background:
-    linear-gradient(90deg, rgba(4,9,24,.34), rgba(4,9,24,.12) 44%, rgba(4,9,24,.38)),
-    linear-gradient(180deg, rgba(3,8,22,.16) 50%, rgba(3,8,22,.52) 100%),
+    linear-gradient(90deg, rgb(4 9 24 / var(--hub-background-dim,.32)), rgba(4,9,24,.1) 44%, rgb(4 9 24 / var(--hub-background-dim,.32))),
+    linear-gradient(180deg, rgba(3,8,22,.14) 50%, rgb(3 8 22 / calc(var(--hub-background-dim,.32) + .2)) 100%),
     url('/Keystone/orbital-horizon.png') center / cover no-repeat,
     radial-gradient(circle at 50% 48%, rgba(69, 187, 255, .18), transparent 24%),
     radial-gradient(circle at 13% 80%, rgba(255, 116, 137, .12), transparent 26%),
@@ -41,7 +41,7 @@
 .orbital-copy > span,.orbital-discovery > span { color:#74e5ff; font-size:.65rem; font-weight:800; letter-spacing:.24em; }
 .orbital-copy h1 { margin:.7rem 0; font-size:clamp(2rem,3.6vw,4.2rem); line-height:.96; letter-spacing:-.04em; }
 .orbital-copy p { color:#a7b9cc; font-size:.82rem; line-height:1.65; }
-.orbital-avatar-showcase { position:absolute; left:clamp(30px,7vw,110px); bottom:20px; z-index:11; width:clamp(210px,18vw,300px); height:clamp(285px,36vh,390px); pointer-events:none; filter:drop-shadow(0 22px 25px rgba(0,0,0,.5)); }
+.orbital-avatar-showcase { position:absolute; left:clamp(30px,7vw,110px); bottom:20px; z-index:11; width:clamp(210px,18vw,300px); height:clamp(285px,36vh,390px); pointer-events:none; filter:drop-shadow(0 22px 25px rgba(0,0,0,.5)); transform:scale(var(--hub-avatar-scale,1)); transform-origin:center bottom; }
 .orbital-avatar-showcase::before { content:""; position:absolute; left:50%; bottom:20px; width:86%; aspect-ratio:1; transform:translateX(-50%); border:1px solid rgba(106,228,255,.24); border-radius:50%; background:radial-gradient(circle,rgba(74,137,255,.14),transparent 67%); box-shadow:0 0 45px rgba(70,178,255,.13),inset 0 0 38px rgba(135,86,255,.1); }
 .orbital-avatar-showcase .avatar-card { position:relative; z-index:1; height:100%; padding:0; border:0; background:transparent; box-shadow:none; }
 .orbital-avatar-showcase .avatar-stage { min-height:100%; background:transparent; overflow:visible; }
@@ -80,8 +80,19 @@
 .orbital-discovery div { display:grid; gap:3px; }.orbital-discovery strong { font-size:.75rem; }.orbital-discovery small { color:#829bb4; font-size:.62rem; }
 .orbital-auth-panel { position:absolute; right:clamp(28px,4vw,60px); bottom:30px; z-index:40; width:clamp(250px,22vw,330px); padding:15px; border:1px solid rgba(112,225,255,.25); border-radius:14px; background:rgba(5,14,31,.82); backdrop-filter:blur(18px); }
 .orbital-auth-panel .nxe-signin-form { position:static; width:auto; padding:0; background:transparent; box-shadow:none; }
-.orbital-settings { position:absolute; z-index:55; right:30px; bottom:28px; width:min(420px,calc(100vw - 60px)); max-height:55vh; overflow:auto; padding:20px; border:1px solid rgba(114,228,255,.38); border-radius:16px; background:rgba(5,14,31,.94); box-shadow:0 22px 65px rgba(0,0,0,.55); backdrop-filter:blur(20px); }
-.orbital-settings > button { float:right; width:32px; height:32px; padding:0; border-radius:50%; color:white; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); }
+.orbital-settings { position:absolute; z-index:55; right:30px; top:92px; bottom:28px; width:min(470px,calc(100vw - 60px)); overflow:auto; padding:22px; border:1px solid rgba(114,228,255,.38); border-radius:16px; background:rgba(5,14,31,.94); box-shadow:0 22px 65px rgba(0,0,0,.55); backdrop-filter:blur(20px); scrollbar-color:#55dfff rgba(255,255,255,.05); }
+.orbital-settings > header { position:sticky; top:-22px; z-index:100; display:flex; align-items:center; justify-content:space-between; margin:-22px -22px 18px; padding:18px 22px 14px; border-bottom:1px solid rgba(111,222,255,.16); background:#050e1f; box-shadow:0 12px 24px rgba(5,14,31,.86); }
+.orbital-settings > header div { display:grid; gap:3px; }.orbital-settings > header span { color:#75e6ff; font-size:.58rem; letter-spacing:.2em; }.orbital-settings > header strong { font-size:1.1rem; }
+.orbital-settings > header button { width:34px; height:34px; padding:0; border-radius:50%; color:white; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); }
+.orbital-settings .dashboard-settings-panel { display:grid; gap:18px; width:100%; }
+.hub-settings-group { display:grid; gap:11px; padding:14px; border:1px solid rgba(111,222,255,.14); border-radius:12px; background:rgba(75,115,190,.07); }
+.hub-toggle,.hub-range { display:flex; align-items:center; justify-content:space-between; gap:16px; color:#d6e9f6; font-size:.78rem; }
+.hub-toggle input { width:38px; height:20px; accent-color:#58def8; cursor:pointer; }
+.hub-range { display:grid; gap:7px; }
+.hub-range span { display:flex; justify-content:space-between; }.hub-range b { color:#70e5ff; font-size:.68rem; }
+.hub-range input { width:100%; accent-color:#73dff7; cursor:pointer; }
+.hub-settings-action { width:100%; padding:.65rem .8rem; color:#eafcff; border:1px solid rgba(105,225,255,.3); border-radius:8px; background:rgba(53,157,201,.15); }
+.hub-settings-action:hover { background:rgba(75,194,234,.25); }.hub-settings-action.reset { color:#ffb6c2; border-color:rgba(255,113,147,.28); background:rgba(255,78,120,.08); }
 @keyframes orbit-spin { to { transform:rotate(360deg); } }
 @keyframes core-float { 0%,100% { translate:0 0; } 50% { translate:0 -10px; } }
 @keyframes core-turn { 0% { rotate:0deg; } 25% { rotate:2deg; } 50% { rotate:0deg; } 75% { rotate:-2deg; } 100% { rotate:0deg; } }
@@ -3079,3 +3090,29 @@ button:disabled {
   transform: none;
   filter: none;
 }
+
+/* Orbital settings must not inherit the retired blade-card panel styling. */
+.orbital-settings .dashboard-settings-panel {
+  position: static !important;
+  inset: auto !important;
+  display: grid !important;
+  width: 100% !important;
+  gap: 18px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow: visible !important;
+  color: #eaf8ff !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+.orbital-settings .dashboard-background-setting { gap: 9px; margin: 0; padding: 14px; border: 1px solid rgba(111,222,255,.14); border-radius: 12px; background: rgba(75,115,190,.07); }
+.orbital-settings .dashboard-background-preview { min-height: 82px; color: #b8d5e6; border-color: rgba(111,222,255,.2); border-radius: 9px; background: linear-gradient(135deg,#09152d,#15224a 55%,#241639); }
+.orbital-settings .dashboard-background-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.orbital-settings .dashboard-background-actions button { padding: .62rem; color: #eafcff; border: 1px solid rgba(105,225,255,.28); border-radius: 8px; background: rgba(53,157,201,.14); }
+.orbital-settings .dashboard-background-setting small { color: #7894a8; }
+.orbital-settings .avatar-theme-label { color: #78e5ff; font-weight: 800; letter-spacing: .16em; }
+.orbital-settings .avatar-theme-row { gap: 8px; }
+.orbital-settings .avatar-theme-row button { min-width: 35px; min-height: 24px; justify-content: center; border-color: rgba(111,222,255,.18); background: rgba(3,11,27,.72); }

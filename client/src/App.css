@@ -2987,7 +2987,7 @@ button:disabled {
   opacity: 1;
   background:
     linear-gradient(180deg, rgba(16,49,8,.12), rgba(35,77,11,.18)),
-    var(--dashboard-background-image) center / cover no-repeat !important;
+    var(--dashboard-background-image) center / contain no-repeat !important;
   mask-image: none;
   transform: none;
   filter: none;

@@ -15,6 +15,9 @@
   overflow: hidden;
   color: #f5f7ff;
   background:
+    linear-gradient(90deg, rgba(4,9,24,.34), rgba(4,9,24,.12) 44%, rgba(4,9,24,.38)),
+    linear-gradient(180deg, rgba(3,8,22,.16) 50%, rgba(3,8,22,.52) 100%),
+    url('/Keystone/orbital-horizon.png') center / cover no-repeat,
     radial-gradient(circle at 50% 48%, rgba(69, 187, 255, .18), transparent 24%),
     radial-gradient(circle at 13% 80%, rgba(255, 116, 137, .12), transparent 26%),
     radial-gradient(circle at 86% 16%, rgba(145, 92, 255, .16), transparent 26%),
@@ -38,6 +41,15 @@
 .orbital-copy > span,.orbital-discovery > span { color:#74e5ff; font-size:.65rem; font-weight:800; letter-spacing:.24em; }
 .orbital-copy h1 { margin:.7rem 0; font-size:clamp(2rem,3.6vw,4.2rem); line-height:.96; letter-spacing:-.04em; }
 .orbital-copy p { color:#a7b9cc; font-size:.82rem; line-height:1.65; }
+.orbital-avatar-showcase { position:absolute; left:clamp(30px,7vw,110px); bottom:20px; z-index:11; width:clamp(210px,18vw,300px); height:clamp(285px,36vh,390px); pointer-events:none; filter:drop-shadow(0 22px 25px rgba(0,0,0,.5)); }
+.orbital-avatar-showcase::before { content:""; position:absolute; left:50%; bottom:20px; width:86%; aspect-ratio:1; transform:translateX(-50%); border:1px solid rgba(106,228,255,.24); border-radius:50%; background:radial-gradient(circle,rgba(74,137,255,.14),transparent 67%); box-shadow:0 0 45px rgba(70,178,255,.13),inset 0 0 38px rgba(135,86,255,.1); }
+.orbital-avatar-showcase .avatar-card { position:relative; z-index:1; height:100%; padding:0; border:0; background:transparent; box-shadow:none; }
+.orbital-avatar-showcase .avatar-stage { min-height:100%; background:transparent; overflow:visible; }
+.orbital-avatar-showcase .avatar-actor { width:100%; height:100%; }
+.orbital-avatar-showcase .avatar-profile { display:none; }
+.orbital-avatar-showcase .avatar-rig-viewer { width:100%; height:clamp(285px,36vh,390px); margin:0; }
+.orbital-avatar-showcase .avatar-rig-viewer canvas { transform:scale(1.15); transform-origin:center bottom; }
+.orbital-avatar-showcase .avatar-body { transform:scale(.95); transform-origin:center bottom; }
 .orbital-system { position:absolute; left:50%; top:50%; width:min(54vw,720px); aspect-ratio:1; transform:translate(-50%,-50%); }
 .orbital-track { position:absolute; inset:9%; border:1px solid rgba(111,222,255,.34); border-radius:50%; box-shadow:0 0 40px rgba(39,135,255,.08), inset 0 0 40px rgba(103,75,255,.06); }
 .track-outer::before,.track-outer::after { content:""; position:absolute; inset:-7px; border-radius:50%; border-top:2px solid #65e4ff; border-right:2px solid transparent; border-bottom:2px solid #ff7f94; border-left:2px solid transparent; filter:drop-shadow(0 0 7px currentColor); animation:orbit-spin 20s linear infinite; }
@@ -70,8 +82,8 @@
 .orbital-settings > button { float:right; width:32px; height:32px; padding:0; border-radius:50%; color:white; border:1px solid rgba(255,255,255,.2); background:rgba(255,255,255,.08); }
 @keyframes orbit-spin { to { transform:rotate(360deg); } }
 @keyframes core-float { 50% { transform:translateY(-8px) rotate(3deg) scale(1.03); } }
-@media (max-width:900px) { .orbital-copy { width:220px; }.orbital-copy p { display:none; }.orbital-system { width:68vw; left:46%; }.orbital-discovery { display:none; }.public-orbital-hub .orbital-system { top:43%; }.orbital-auth-panel { left:50%; right:auto; bottom:18px; transform:translateX(-50%); width:min(440px,calc(100vw - 36px)); } }
-@media (max-width:620px) { .orbital-header { inset:18px; }.orbital-copy { top:88px; left:20px; }.orbital-copy h1 { font-size:1.8rem; }.orbital-system { width:94vw; left:50%; top:54%; }.orbit-node::before { width:48px; height:48px; }.orbit-node span { font-size:.6rem; }.public-orbital-hub .orbital-system { top:39%; }.public-orbital-hub .orbital-copy { display:none; } }
+@media (max-width:900px) { .orbital-copy { width:220px; }.orbital-copy p { display:none; }.orbital-system { width:68vw; left:52%; }.orbital-discovery { display:none; }.orbital-avatar-showcase { left:20px; width:190px; height:270px; }.orbital-avatar-showcase .avatar-rig-viewer { height:270px; }.public-orbital-hub .orbital-system { top:43%; }.orbital-auth-panel { left:50%; right:auto; bottom:18px; transform:translateX(-50%); width:min(440px,calc(100vw - 36px)); } }
+@media (max-width:620px) { .orbital-header { inset:18px; }.orbital-copy { top:88px; left:20px; }.orbital-copy h1 { font-size:1.8rem; }.orbital-system { width:94vw; left:50%; top:48%; }.orbit-node::before { width:48px; height:48px; }.orbit-node span { font-size:.6rem; }.orbital-avatar-showcase { width:145px; height:210px; left:12px; }.orbital-avatar-showcase .avatar-rig-viewer { height:210px; }.public-orbital-hub .orbital-system { top:39%; }.public-orbital-hub .orbital-copy { display:none; } }
 
 /* Classic console dashboard: left-selected, right-receding card carousel. */
 .app-container:not([data-theme="cosmic-mind"]) .nxe-scene,

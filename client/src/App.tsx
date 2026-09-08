@@ -1677,6 +1677,9 @@ function App() {
                   <section className={`orbital-hub ${storeOpen ? 'store-open' : ''}`}>
                     <header className="orbital-header"><div className="keystone-brand"><i aria-hidden="true"></i><div><strong>KeyStone</strong><span>Play a brighter tomorrow</span></div></div><div className="orbital-user"><span>ONLINE</span><strong>{currentUser.username}</strong></div></header>
                     <div className="orbital-copy"><span>ORBITAL HUB</span><h1>Welcome back,<br/>{currentUser.username}.</h1><p>Your collection and creator tools, aligned in one universe.</p></div>
+                    <div className="orbital-avatar-showcase" aria-label={`${currentUser.username} avatar`}>
+                      {dashboardAvatar}
+                    </div>
                     <div className="orbital-system" aria-label="KeyStone navigation">
                       <div className="orbital-track track-outer"></div><div className="orbital-track track-inner"></div>
                       <div className="keystone-core" aria-hidden="true"><i></i><i></i><i></i><span></span></div>

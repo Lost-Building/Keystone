@@ -648,52 +648,40 @@ function OrbitalCrystal() {
     mount.appendChild(renderer.domElement);
 
     const assembly = new THREE.Group();
+    assembly.rotation.x = -.22;
     scene.add(assembly);
-    const shell = new THREE.Mesh(
-      new THREE.IcosahedronGeometry(1.4, 1),
-      new THREE.MeshPhysicalMaterial({ color: 0x83e8ff, emissive: 0x14195f, emissiveIntensity: .72, metalness: .12, roughness: .04, transmission: .72, thickness: .72, transparent: true, opacity: .64, clearcoat: 1 })
-    );
-    shell.scale.set(1, 1.13, .9);
-    assembly.add(shell);
-    const wire = new THREE.LineSegments(
-      new THREE.EdgesGeometry(shell.geometry, 16),
-      new THREE.LineBasicMaterial({ color: 0xc9f7ff, transparent: true, opacity: .58 })
-    );
-    wire.scale.copy(shell.scale);
-    assembly.add(wire);
-    const core = new THREE.Mesh(
-      new THREE.OctahedronGeometry(.68, 0),
-      new THREE.MeshPhysicalMaterial({ color: 0xff719c, emissive: 0xff266f, emissiveIntensity: 2.5, roughness: .16, metalness: .28, clearcoat: 1 })
-    );
-    assembly.add(core);
-
-    const shardGeometry = new THREE.TetrahedronGeometry(.17, 0);
-    const shards: THREE.Mesh[] = [];
-    for (let index = 0; index < 9; index += 1) {
-      const shard = new THREE.Mesh(shardGeometry, new THREE.MeshPhysicalMaterial({ color: index % 2 ? 0x9b72ff : 0x61e8ff, emissive: index % 2 ? 0x35106f : 0x074b73, emissiveIntensity: 1.3, metalness: .35, roughness: .2 }));
-      shard.userData.angle = (index / 9) * Math.PI * 2;
-      shard.userData.radius = 2.02 + (index % 3) * .14;
-      shard.userData.speed = .32 + (index % 4) * .045;
-      shards.push(shard);
-      assembly.add(shard);
-    }
-
-    const particleCount = 90;
+    const particleCount = 3200;
     const particlePositions = new Float32Array(particleCount * 3);
+    const particleColors = new Float32Array(particleCount * 3);
+    const cyan = new THREE.Color(0x67e8ff);
+    const violet = new THREE.Color(0x8e62ff);
+    const coral = new THREE.Color(0xff6f9d);
     for (let index = 0; index < particleCount; index += 1) {
-      const angle = (index / particleCount) * Math.PI * 2 * 3.7;
-      const radius = 1.8 + (index % 11) * .075;
+      const arm = index % 4;
+      const seed = Math.abs(Math.sin(index * 91.731) * 43758.5453) % 1;
+      const spread = Math.abs(Math.sin(index * 17.193) * 12741.371) % 1;
+      const radius = .08 + Math.pow(seed, .72) * 2.55;
+      const angle = arm * Math.PI / 2 + radius * 2.15 + (spread - .5) * (.72 - radius * .16);
       particlePositions[index * 3] = Math.cos(angle) * radius;
-      particlePositions[index * 3 + 1] = Math.sin(angle) * radius * .48;
-      particlePositions[index * 3 + 2] = (Math.sin(index * 2.17) * .7);
+      particlePositions[index * 3 + 1] = Math.sin(angle) * radius * .58;
+      particlePositions[index * 3 + 2] = (Math.sin(index * 13.17) * .16) * (1.1 - radius / 3.2);
+      const color = radius < .62 ? coral.clone().lerp(cyan, radius) : violet.clone().lerp(cyan, spread * .78);
+      particleColors[index * 3] = color.r; particleColors[index * 3 + 1] = color.g; particleColors[index * 3 + 2] = color.b;
     }
     const particleGeometry = new THREE.BufferGeometry();
     particleGeometry.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
-    const particles = new THREE.Points(particleGeometry, new THREE.PointsMaterial({ color: 0x87eaff, size: .035, transparent: true, opacity: .72, blending: THREE.AdditiveBlending, depthWrite: false }));
+    particleGeometry.setAttribute('color', new THREE.BufferAttribute(particleColors, 3));
+    const particles = new THREE.Points(particleGeometry, new THREE.PointsMaterial({ size: .032, sizeAttenuation: true, vertexColors: true, transparent: true, opacity: .9, blending: THREE.AdditiveBlending, depthWrite: false }));
     assembly.add(particles);
-    scene.add(new THREE.HemisphereLight(0xbcefff, 0x210735, 2.6));
-    const coralLight = new THREE.PointLight(0xff477e, 18, 10); coralLight.position.set(-2, -.7, 2.5); scene.add(coralLight);
-    const cyanLight = new THREE.PointLight(0x47dfff, 22, 10); cyanLight.position.set(2.2, 1.5, 2.8); scene.add(cyanLight);
+    const dustGeometry = particleGeometry.clone();
+    const dust = new THREE.Points(dustGeometry, new THREE.PointsMaterial({ color: 0x5a58ff, size: .065, transparent: true, opacity: .16, blending: THREE.AdditiveBlending, depthWrite: false }));
+    dust.scale.set(1.08, 1.16, 1.4);
+    assembly.add(dust);
+    const core = new THREE.Mesh(new THREE.SphereGeometry(.32, 48, 32), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: .96, blending: THREE.AdditiveBlending }));
+    const coreGlow = new THREE.Mesh(new THREE.SphereGeometry(.68, 48, 32), new THREE.MeshBasicMaterial({ color: 0xff5f9c, transparent: true, opacity: .22, blending: THREE.AdditiveBlending, depthWrite: false }));
+    core.scale.set(1, .58, .45); coreGlow.scale.set(1, .54, .4); assembly.add(coreGlow, core);
+    const ringMaterial = new THREE.MeshBasicMaterial({ color: 0x72ddff, transparent: true, opacity: .22, blending: THREE.AdditiveBlending, wireframe: true });
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(1.44, .018, 5, 120), ringMaterial); ring.scale.y = .58; assembly.add(ring);
 
     const pointer = new THREE.Vector2();
     const onPointerMove = (event: PointerEvent) => {
@@ -708,19 +696,19 @@ function OrbitalCrystal() {
     const animate = (timestamp?: number) => {
       timer.update(timestamp);
       const time = timer.getElapsed();
-      assembly.rotation.y += ((pointer.x * .24 + time * .16) - assembly.rotation.y) * .025;
-      assembly.rotation.x += ((-pointer.y * .16 + Math.sin(time * .55) * .08) - assembly.rotation.x) * .035;
-      shell.rotation.z = Math.sin(time * .42) * .16;
-      wire.rotation.z = -time * .1;
-      core.rotation.x = time * .72; core.rotation.y = time * .94;
-      core.scale.setScalar(1 + Math.sin(time * 2.2) * .08);
-      particles.rotation.z = time * .09; particles.rotation.y = -time * .05;
-      shards.forEach((shard, index) => { const angle = shard.userData.angle + time * shard.userData.speed; const radius = shard.userData.radius; shard.position.set(Math.cos(angle) * radius, Math.sin(angle) * radius * .52, Math.sin(angle * 2 + index) * .6); shard.rotation.set(time * .7 + index, time * .9, angle); });
+      assembly.rotation.y += ((pointer.x * .16) - assembly.rotation.y) * .025;
+      assembly.rotation.x += ((-.22 - pointer.y * .12) - assembly.rotation.x) * .035;
+      particles.rotation.z = time * .075;
+      dust.rotation.z = time * .045;
+      ring.rotation.z = -time * .16;
+      const pulse = 1 + Math.sin(time * 2.1) * .09;
+      core.scale.set(pulse, pulse * .58, pulse * .45);
+      coreGlow.scale.set(pulse * 1.08, pulse * .58, pulse * .44);
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
     };
     animate();
-    return () => { cancelAnimationFrame(frameId); timer.dispose(); observer.disconnect(); mount.removeEventListener('pointermove', onPointerMove); renderer.dispose(); shell.geometry.dispose(); wire.geometry.dispose(); core.geometry.dispose(); shardGeometry.dispose(); particleGeometry.dispose(); mount.removeChild(renderer.domElement); };
+    return () => { cancelAnimationFrame(frameId); timer.dispose(); observer.disconnect(); mount.removeEventListener('pointermove', onPointerMove); renderer.dispose(); core.geometry.dispose(); coreGlow.geometry.dispose(); ring.geometry.dispose(); particleGeometry.dispose(); dustGeometry.dispose(); mount.removeChild(renderer.domElement); };
   }, []);
 
   return <div className="orbital-crystal-canvas" ref={mountRef} aria-hidden="true" />;

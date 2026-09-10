@@ -3116,3 +3116,26 @@ button:disabled {
 .orbital-settings .avatar-theme-label { color: #78e5ff; font-weight: 800; letter-spacing: .16em; }
 .orbital-settings .avatar-theme-row { gap: 8px; }
 .orbital-settings .avatar-theme-row button { min-width: 35px; min-height: 24px; justify-content: center; border-color: rgba(111,222,255,.18); background: rgba(3,11,27,.72); }
+
+/* Featured world carousel on the right rail. */
+.orbital-discovery { right: clamp(26px, 4vw, 68px); top: clamp(130px, 18vh, 180px); width: clamp(250px, 22vw, 340px); display: grid; gap: 12px; }
+.discovery-heading { display: flex; align-items: center; justify-content: space-between; }
+.discovery-heading span { color: #74e5ff; font-size: .65rem; font-weight: 800; letter-spacing: .24em; }
+.discovery-heading small { color: #7895ab; font-size: .62rem; letter-spacing: .1em; }
+.discovery-feature { position: relative; display: block !important; width: 100%; height: clamp(190px, 24vh, 250px); padding: 0 !important; overflow: hidden; border: 1px solid rgba(121,208,255,.3); border-radius: 14px; color: #fff; text-align: left; background: #08152c; box-shadow: 0 18px 40px rgba(0,0,0,.34); cursor: pointer; transition: transform .25s ease, border-color .25s ease, box-shadow .25s ease; }
+.discovery-feature:hover { border-color: #78e7ff; transform: translateY(-3px); box-shadow: 0 22px 50px rgba(45,180,255,.24); }
+.discovery-feature > img { width: 100% !important; height: 100% !important; object-fit: cover; opacity: .82; }
+.discovery-feature-overlay { position: absolute; inset: 0; display: grid; align-content: end; gap: 5px; padding: 16px; background: linear-gradient(180deg, transparent 18%, rgba(3,9,24,.92) 100%); }
+.discovery-feature-overlay small { color: #76e5ff; font-size: .58rem; letter-spacing: .2em; }
+.discovery-feature-overlay strong { font-size: 1.35rem; }
+.discovery-feature-overlay span { color: #b1c6d8; font-size: .7rem; }
+.discovery-feature-overlay b { margin-top: 6px; color: #fff; font-size: .72rem; }
+.discovery-feature-overlay em { margin-left: 4px; color: #ff8ca3; font-style: normal; font-size: 1.1rem; }
+.discovery-controls { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.discovery-controls > button { width: 31px; height: 31px; padding: 0; border: 1px solid rgba(112,225,255,.32); border-radius: 50%; color: #dffaff; background: rgba(5,20,44,.82); font-size: 1.4rem; line-height: 1; }
+.discovery-controls > button:hover { border-color: #fff; background: rgba(50,155,206,.3); }
+.discovery-controls > div { display: flex; flex: 1; justify-content: center; gap: 7px; }
+.discovery-controls i { width: 6px; height: 6px; border-radius: 50%; background: rgba(160,197,218,.45); }
+.discovery-controls i.active { width: 22px; border-radius: 999px; background: #6be3ff; box-shadow: 0 0 10px rgba(81,220,255,.74); }
+@media (max-width: 900px) { .orbital-discovery { display: grid; right: 20px; top: 120px; width: 220px; } }
+@media (max-width: 620px) { .orbital-discovery { display: none; } }

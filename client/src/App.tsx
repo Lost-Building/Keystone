@@ -1383,6 +1383,18 @@ function App() {
     </span>
   );
 
+  const renderDiscoveryCarousel = (onOpen: () => void) => {
+    const game = popularGames[popularGameIndex];
+    return <section className="orbital-discovery" aria-label="Discover new worlds">
+      <div className="discovery-heading"><span>DISCOVER NEW WORLDS</span><small>{popularGameIndex + 1} / {popularGames.length}</small></div>
+      <button className="discovery-feature" onClick={onOpen}>
+        <img src={game.image} alt="" />
+        <div className="discovery-feature-overlay"><small>FEATURED RELEASE</small><strong>{game.title}</strong><span>{['Explore the unknown','A legend awakens','Race beyond light','A city in motion'][popularGameIndex]}</span><b>Open Store <em>→</em></b></div>
+      </button>
+      <div className="discovery-controls"><button type="button" aria-label="Previous world" onClick={(event) => { event.stopPropagation(); setPopularGameIndex((index) => (index - 1 + popularGames.length) % popularGames.length); }}>‹</button><div>{popularGames.map((item, index) => <i key={item.title} className={index === popularGameIndex ? 'active' : ''} />)}</div><button type="button" aria-label="Next world" onClick={(event) => { event.stopPropagation(); setPopularGameIndex((index) => (index + 1) % popularGames.length); }}>›</button></div>
+    </section>;
+  };
+
   const renderDashboardSettings = () => (
     <div className="avatar-theme-picker dashboard-settings-panel" aria-label="Dashboard settings" onClick={(event) => event.stopPropagation()}>
       <span className="avatar-theme-label">Dashboard theme</span>
@@ -1722,7 +1734,7 @@ function App() {
                   <div className="keystone-core">{hubPreferences.galaxyEnabled && <OrbitalCrystal speed={hubPreferences.galaxySpeed} intensity={hubPreferences.galaxyIntensity} pointerMotion={hubPreferences.pointerMotion}/>}<span className="core-aura"></span></div>
                   {publicDashboardCards.map((card, index) => <button key={card.label} className={`orbit-node node-${index}`} onClick={() => card.label === 'Settings' ? setActiveDashboardCard(index) : card.action()}><OrbitalIcon kind={card.icon}/><span>{card.label}</span></button>)}
                 </div>
-                <div className="orbital-discovery"><span>DISCOVER NEW WORLDS</span>{popularGames.slice(0,3).map((game, index) => <button key={game.title} onClick={enterPublicDemo}><img src={game.image}/><div><strong>{game.title}</strong><small>{['Explore the unknown','A legend awakens','Race beyond light'][index]}</small></div></button>)}</div>
+                {renderDiscoveryCarousel(enterPublicDemo)}
                 <div className="orbital-auth-panel">
                   <form className="nxe-signin-form" onSubmit={handleAuthSubmit}>
                     <strong>KeyStone Profile</strong>
@@ -1829,7 +1841,7 @@ function App() {
                       <div className="keystone-core">{hubPreferences.galaxyEnabled && <OrbitalCrystal speed={hubPreferences.galaxySpeed} intensity={hubPreferences.galaxyIntensity} pointerMotion={hubPreferences.pointerMotion}/>}<span className="core-aura"></span></div>
                       {dashboardCards.map((card, index) => <button key={card.label} className={`orbit-node node-${index} ${index === activeDashboardCard ? 'active' : ''}`} onClick={() => { setActiveDashboardCard(index); if(card.label !== 'Settings') card.action(); }}><OrbitalIcon kind={card.icon}/><span>{card.label}</span></button>)}
                     </div>
-                    <div className="orbital-discovery"><span>DISCOVER NEW WORLDS</span>{popularGames.slice(0,3).map((game, index) => <button key={game.title} onClick={openStore}><img src={game.image}/><div><strong>{game.title}</strong><small>{['Explore the unknown','A legend awakens','Race beyond light'][index]}</small></div></button>)}</div>
+                    {renderDiscoveryCarousel(openStore)}
                     {isSettingsOpen && <aside className="orbital-settings"><header><div><span>CONTROL CENTER</span><strong>Hub settings</strong></div><button onClick={() => setActiveDashboardCard(0)} aria-label="Close settings">×</button></header>{renderDashboardSettings()}</aside>}
                     {storeOpen && (
                       <section className="store-overlay" aria-label="KeyStone Store">
